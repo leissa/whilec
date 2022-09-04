@@ -18,3 +18,6 @@ class Loc:
             return f'{self.file}:{self.begin}'
         else:
             return f'{self.file}:{self.begin}-{self.finis}'
+
+    def anew_begin(self): return Loc(self.file, self.begin, self.begin)
+    def anew_finis(self): return Loc(self.file, self.finis, self.finis)

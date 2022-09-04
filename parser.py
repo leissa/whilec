@@ -1,6 +1,8 @@
 from copy import deepcopy
-from ast import *
+
+from while_ast import *
 from lexer import *
+from err import *
 
 class Parser:
     def __init__(self, filename):
@@ -19,7 +21,8 @@ class Parser:
     # helpers get next Tok from Lexer
 
     def lex(self):
-        result = deepcopy(self.ahead)
+        self.prev  = self.ahead.loc
+        result     = self.ahead
         self.ahead = self.lexer.lex()
         return result
 
@@ -29,11 +32,21 @@ class Parser:
         assert self.ahead.isa(tag)
         return self.lex()
 
-    def expect(self, tag): # TODO
-        assert self.ahead.isa(tag)
-        return self.lex()
+    def xerr(self, a = None, b = None, c = None):
+        if c == None:
+            self.xerr(a, self.ahead, b)
+        else:
+            err.err(tok.loc(), "expected {what}, got '{tok}' while parsing {ctxt}")
 
-    # parse Stmnt
+    def expect(self, tag, ctxt):
+        if self.ahead.isa(tag): return self.lex()
+        self.xerr(f"'{tag}'", ctxt)
+        return None;
+
+    def parse_prog(self):
+        stmnt = self.parse_stmnt()
+        self.expect(Tag.M_eof, 'program' )
+        return stmnt
 
     def parse_stmnt(self):
         if self.ahead.isa(Tag.M_id):    return self.parse_assign_stmnt()
@@ -52,7 +65,7 @@ class Parser:
     def parse_expr(self):
         t   = self.track()
         lhs = self.parse_primary_expr()
-        op  = self.lex()
+        op  = self.lex().tag
         rhs = self.parse_expr()
         return BinExpr(t.loc(), lhs, op, rhs)
 

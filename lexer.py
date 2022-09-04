@@ -1,7 +1,9 @@
 from copy import deepcopy
 from enum import Enum, auto
-from loc import *
 import string
+
+from err import err
+from loc import *
 
 class Tag(Enum):
     # delimiters
@@ -95,8 +97,8 @@ class Lexer:
             self.loc.finis = deepcopy(self.peek)
             self.str = ''
 
-            if self.accept_if(lambda char : char in string.whitespace): continue
             if self.accept('' ): return Tok(self.loc, Tag.M_eof)
+            if self.accept_if(lambda char : char in string.whitespace): continue
             if self.accept('{'): return Tok(self.loc, Tag.D_brace_l)
             if self.accept('}'): return Tok(self.loc, Tag.D_brace_r)
             if self.accept('('): return Tok(self.loc, Tag.D_paren_l)
@@ -117,5 +119,5 @@ class Lexer:
                 if self.str in self.keywords: return Tok(self.loc, self.keywords[self.str])
                 return Tok(self.loc, self.str)
 
-            print('error')
-            break
+            self.accept_if(lambda _ : True) # eat unknown char
+            err(self.loc.anew_begin(), f"illegal character '{self.str}' in input stream")

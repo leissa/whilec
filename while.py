@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
+
+import err
 from parser import Parser
 
 cli = argparse.ArgumentParser(description='Compiler and interpreter for the while languge.')
-
 
 cli.add_argument('--eval',    dest='eval',    action='store_true', help='interpret input program')
 cli.add_argument('--emit-c',  dest='emit_c',  action='store_true', help='compile input program to C')
