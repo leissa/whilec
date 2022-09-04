@@ -3,4 +3,4 @@ from lexer import Lexer
 class Parser:
     def __init__(self, filename):
         self.lexer = Lexer(filename)
-        self.lexer.lex()
+        self.ahead = self.lexer.lex()
