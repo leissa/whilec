@@ -11,5 +11,6 @@ cli.add_argument('--emit-c',  dest='emit_c',  action='store_true', help='compile
 cli.add_argument('--emit-py', dest='emit_py', action='store_true', help='compile input program to Python')
 cli.add_argument('file',                                           help='input file')
 
-args = cli.parse_args()
+args   = cli.parse_args()
 parser = Parser(args.file)
+stmnt  = parser.parse_stmnt()
