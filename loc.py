@@ -3,14 +3,9 @@ class Pos:
         self.row = row
         self.col = col
 
-    def __str__(self):
-        return f'{self.row}:{self.col}'
-
-    def __eq__(self, other):
-        return self.row == other.row and self.col == other.col
-
-    def __ne__(self, other):
-        return self.row != other.row and self.col != other.col
+    def __str__(self): return f'{self.row}:{self.col}'
+    def __eq__(self, other): return self.row == other.row and self.col == other.col
+    def __ne__(self, other): return self.row != other.row and self.col != other.col
 
 class Loc:
     def __init__(self, file, begin, finis):

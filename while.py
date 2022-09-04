@@ -13,4 +13,4 @@ cli.add_argument('file',                                           help='input f
 
 args   = cli.parse_args()
 parser = Parser(args.file)
-stmnt  = parser.parse_stmnt()
+stmnt  = parser.parse_prog()
