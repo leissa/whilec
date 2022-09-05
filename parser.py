@@ -7,22 +7,25 @@ from err import *
 class Parser:
     def __init__(self, filename):
         self.lexer = Lexer(filename)
-        self.ahead = deepcopy(self.lexer.lex())
-        self.prev  = self.ahead.loc
+        self.ahead = self.lexer.lex()
+        self.prev  = None
 
     # helpers to track loc
 
     class Tracker:
-        def __init__(self, loc): self.__loc = loc.copy()
-        def loc(self): return self.__loc
+        def __init__(self, begin, parser):
+            self.begin  = begin
+            self.parser = parser
 
-    def track(self): return self.Tracker(self.prev)
+        def loc(self): return Loc(self.parser.ahead.loc.file, self.begin, self.parser.prev)
+
+    def track(self): return self.Tracker(self.ahead.loc.begin, self)
 
     # helpers get next Tok from Lexer
 
     def lex(self):
-        self.prev  = self.ahead.loc
         result     = self.ahead
+        self.prev  = result.loc.begin
         self.ahead = self.lexer.lex()
         return result
 
@@ -32,16 +35,16 @@ class Parser:
         assert self.ahead.isa(tag)
         return self.lex()
 
-    def xerr(self, a = None, b = None, c = None):
+    def err(self, a = None, b = None, c = None):
         if c == None:
-            self.xerr(a, self.ahead, b)
+            self.err(a, self.ahead, b)
         else:
             got = str(b) if isinstance(b, Tag) else b
             err(b.loc, f"expected {a}, got '{b}' while parsing {c}")
 
     def expect(self, tag, ctxt):
         if self.ahead.isa(tag): return self.lex()
-        self.xerr(f"'{tag}'", ctxt)
+        self.err(f"'{tag}'", ctxt)
         return None;
 
     def parse_prog(self):
@@ -54,9 +57,7 @@ class Parser:
         return Prog(t.loc(), stmt, ret)
 
     def parse_type(self, ctxt):
-        if self.ahead.is_type():
-            tok = self.lex()
-            return Type(tok.loc, tok.tag)
+        if self.ahead.is_type(): return self.lex()
         self.expect("type", "type")
 
     def parse_id(self, ctxt=None):
@@ -72,7 +73,9 @@ class Parser:
         while True:
             while self.accept(Tag.T_semicolon): pass
 
-            if self.ahead.isa(Tag.M_id):
+            if self.ahead.isa(Tag.K_int) or self.ahead.isa(Tag.K_bool):
+                stmts.append(self.parse_decl_stmt())
+            elif self.ahead.isa(Tag.M_id):
                 stmts.append(self.parse_assign_stmt())
             elif self.ahead.isa(Tag.K_while):
                 stmts.append(self.parse_while_stmt())
@@ -83,12 +86,20 @@ class Parser:
 
     def parse_assign_stmt(self):
         t    = self.track()
-        id   = self.eat(Tag.M_id).id
-        self.expect(Tag.T_colon, "type ascription within an assignment statement")
-        type = self.parse_type("type ascription within an assignment statement")
+        id   = self.eat(Tag.M_id)
         self.expect(Tag.T_assign, "assignment statement")
         expr = self.parse_expr()
-        return AssignStmt(t.loc(), id, type, expr)
+        self.expect(Tag.T_semicolon, "end of an assignment statement")
+        return AssignStmt(t.loc(), id, expr)
+
+    def parse_decl_stmt(self):
+        t    = self.track()
+        type = self.lex().tag
+        id   = self.eat(Tag.M_id)
+        self.expect(Tag.T_assign, "declaration statement")
+        expr = self.parse_expr()
+        self.expect(Tag.T_semicolon, "end of a declaration statement")
+        return DeclStmt(t.loc(), type, id, expr)
 
     def parse_while_stmt(self):
         t    = self.track()
@@ -113,20 +124,13 @@ class Parser:
         return lhs
 
     def parse_primary_expr(self, ctxt):
-        t = self.track()
-        if self.ahead.isa(Tag.M_id ):  return IdExpr (t.loc(), self.lex().id )
-        if self.ahead.isa(Tag.M_lit):  return LitExpr(t.loc(), self.lex().lit)
-        if self.accept(Tag.K_false):
-            lit_expr = LitExpr(t.loc(), 0)
-            lit_expr.type = Tag.T_bool
-            return lit_expr
-        if self.accept(Tag.K_true):
-            lit_expr = LitExpr(t.loc(), 1)
-            lit_expr.type = Tag.T_bool
-            return lit_expr
+        if (tok := self.accept(Tag.K_false)) != None: return BoolExpr(tok.loc, False)
+        if (tok := self.accept(Tag.K_true )) != None: return BoolExpr(tok.loc, True )
+        if (tok := self.accept(Tag.M_id   )) != None: return IdExpr (tok.loc, tok   )
+        if (tok := self.accept(Tag.M_lit  )) != None: return LitExpr(tok.loc, tok.val)
         if self.ahead.isa(Tag.D_paren_l):
             self.eat(Tag.D_paren_l)
             expr = self.parse_expr()
             self.expect(Tag.D_paren_r)
             return expr
-        self.xerr("primary expression", ctxt)
+        self.err("primary expression", ctxt)

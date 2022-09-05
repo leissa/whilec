@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import sys
 
 import err
 from parser import Parser
@@ -17,5 +18,11 @@ args   = cli.parse_args()
 parser = Parser(args.file)
 prog   = parser.parse_prog()
 
-if args.print:
-    print(prog)
+if args.print: print(prog)
+
+prog.check()
+if err.num_errors != 0: sys.exit(f"aborting due to {err.num_errors} error(s)")
+
+if args.eval:    prog.eval()
+if args.emit_c:  prog.emit_c()
+if args.emit_py: prog.emit_py()

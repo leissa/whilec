@@ -60,7 +60,7 @@ class Lexer:
             if self.accept(")"): return Tok(self.loc, Tag.D_paren_r)
             if self.accept("+"): return Tok(self.loc, Tag.T_add)
             if self.accept("-"): return Tok(self.loc, Tag.T_sub)
-            if self.accept(":"): return Tok(self.loc, Tag.T_colon)
+            if self.accept("*"): return Tok(self.loc, Tag.T_mul)
             if self.accept(";"): return Tok(self.loc, Tag.T_semicolon)
 
             if self.accept("="):

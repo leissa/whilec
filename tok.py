@@ -24,6 +24,7 @@ class Tag(Enum):
     # further tokens
     T_add       = auto()
     T_sub       = auto()
+    T_mul       = auto()
     T_eq        = auto()
     T_ne        = auto()
     T_lt        = auto()
@@ -31,7 +32,6 @@ class Tag(Enum):
     T_gt        = auto()
     T_ge        = auto()
     T_assign    = auto()
-    T_colon     = auto()
     T_semicolon = auto()
 
     def __str__(self):
@@ -53,6 +53,7 @@ class Tag(Enum):
         if self is self.M_eof:       return "<end of file>"
         if self is self.T_add:       return "+"
         if self is self.T_sub:       return "-"
+        if self is self.T_mul:       return "*"
         if self is self.T_eq:        return "=="
         if self is self.T_ne:        return "!="
         if self is self.T_lt:        return "<"
@@ -60,7 +61,6 @@ class Tag(Enum):
         if self is self.T_gt:        return ">"
         if self is self.T_ge:        return ">="
         if self is self.T_assign:    return "="
-        if self is self.T_colon:     return ":"
         if self is self.T_semicolon: return ";"
         assert False
 
@@ -69,6 +69,7 @@ class Tag(Enum):
     def is_bin_op(self):
         return self is self.T_add \
             or self is self.T_sub \
+            or self is self.T_mul \
             or self is self.T_eq  \
             or self is self.T_ne  \
             or self is self.T_lt  \
@@ -76,6 +77,23 @@ class Tag(Enum):
             or self is self.T_gt  \
             or self is self.T_ge  \
             or self is self.K_and \
+            or self is self.K_or
+
+    def is_arith(self):
+        return self is self.T_add \
+            or self is self.T_sub \
+            or self is self.T_mul
+
+    def is_rel(self):
+        return self is self.T_eq \
+            or self is self.T_ne \
+            or self is self.T_lt \
+            or self is self.T_le \
+            or self is self.T_gt \
+            or self is self.T_ge
+
+    def is_logic(self): # binary only - T_not is its own thing
+        return self is self.K_and \
             or self is self.K_or
 
 class Tok:
@@ -87,14 +105,14 @@ class Tok:
             self.id  = arg
         elif isinstance(arg, int):
             self.tag = Tag.M_lit
-            self.lit = arg
+            self.val = arg
         else:
             assert isinstance(arg, Tag)
             self.tag = arg
 
     def __str__(self):
         if self.isa(Tag.M_id):  return self.id
-        if self.isa(Tag.M_lit): return str(self.lit)
+        if self.isa(Tag.M_lit): return str(self.val)
         return self.tag.__str__()
 
     def isa(self, tag): return self.tag is tag

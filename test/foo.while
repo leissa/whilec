@@ -1,15 +1,16 @@
-while x == 0 {
-    x: int = x + 1;
+while x == 333 {
+    x: int = asdf + 1;
     y: bool = x < 17;
     while x < 32 {}
     z: int = 42;
     while x < 32 {
         z: int = 42;
     }
-    z: int = 42
+    z: int = 42;
     while x < 32 {
         z: int = 42;
         z: int = 42;
+        asdf: bool = true and false;
     }
 }
 return x;
