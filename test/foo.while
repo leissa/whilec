@@ -1,5 +1,15 @@
 while x == 0 {
     x: int = x + 1;
-    y: bool = x < 17
+    y: bool = x < 17;
+    while x < 32 {}
+    z: int = 42;
+    while x < 32 {
+        z: int = 42;
+    }
+    z: int = 42
+    while x < 32 {
+        z: int = 42;
+        z: int = 42;
+    }
 }
-return x
+return x;

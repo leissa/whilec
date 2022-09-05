@@ -15,7 +15,6 @@ class Tag(Enum):
     K_not       = auto()
     K_true      = auto()
     K_false     = auto()
-    K_pass      = auto()
     K_return    = auto()
     K_while     = auto()
     # misc
@@ -47,7 +46,6 @@ class Tag(Enum):
         if self is self.K_not:       return "not"
         if self is self.K_true:      return "true"
         if self is self.K_false:     return "false"
-        if self is self.K_pass:      return "pass"
         if self is self.K_return:    return "return"
         if self is self.K_while:     return "while"
         if self is self.M_id:        return "<identifier>"

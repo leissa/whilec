@@ -18,7 +18,6 @@ class Lexer:
             "int":    Tag.K_int,
             "true":   Tag.K_true,
             "false":  Tag.K_false,
-            "pass":   Tag.K_pass,
             "return": Tag.K_return,
             "while":  Tag.K_while,
         }

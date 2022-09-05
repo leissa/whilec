@@ -1,15 +1,15 @@
 from tok import *
 
 class Tab:
-    def __init__(self, ind=0, tab = "\t"):
-        self.ind = ind
+    def __init__(self, tab = "\t"):
+        self.ind = 0
         self.tab = tab
 
     def indent(self): self.ind += 1
     def dedent(self): self.ind -= 1
     def __str__(self):
         res = ""
-        for i in range(0, self.ind):
+        for i in range(self.ind):
             res += self.tab
         return res
 
@@ -26,7 +26,7 @@ class Prog(AST):
 
     def __str__(self):
         head = f"{self.stmt}"
-        tail = f"return {self.ret}"
+        tail = f"return {self.ret};"
         return head + tail
 
 class Type(AST):
@@ -49,21 +49,18 @@ class AssignStmt(Stmt):
         self.expr = expr
 
     def __str__(self):
-        return f"{tab}{self.id}: {self.type} = {self.expr}"
+        return f"{self.id}: {self.type} = {self.expr}"
 
-class PassStmt(Stmt):
-    def __init__(self, loc):
-        super(PassStmt, self).__init__(loc)
+class StmtList(Stmt):
+    def __init__(self, loc, stmts):
+        super(StmtList, self).__init__(loc)
+        self.stmts = stmts
 
-    def __str__(self): return f"pass"
-
-class SeqStmt(Stmt):
-    def __init__(self, loc, s1, s2):
-        super(SeqStmt, self).__init__(loc)
-        self.s1 = s1
-        self.s2 = s2
-
-    def __str__(self): return f"{tab}{self.s1};\n{self.s2}"
+    def __str__(self):
+        res = ""
+        for stmt in self.stmts:
+            res += f"{tab}{stmt};\n"
+        return res
 
 class WhileStmt(Stmt):
     def __init__(self, loc, cond, body):
@@ -74,9 +71,9 @@ class WhileStmt(Stmt):
     def __str__(self):
         head = f"while {self.cond} {{\n"
         tab.indent()
-        body = f"{self.body}\n"
+        body = f"{self.body}"
         tab.dedent()
-        tail = f"}}\n"
+        tail = f"{tab}}}"
         return head + body + tail
 
 # Expr

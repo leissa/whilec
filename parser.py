@@ -49,7 +49,8 @@ class Parser:
         stmt = self.parse_stmt()
         self.expect(Tag.K_return, "program")
         ret  = self.parse_expr()
-        self.expect(Tag.M_eof, "program")
+        self.expect(Tag.T_semicolon, "at the end of the final return of the program")
+        self.expect(Tag.M_eof, "at the end of the program")
         return Prog(t.loc(), stmt, ret)
 
     def parse_type(self, ctxt):
@@ -65,24 +66,20 @@ class Parser:
     # Stmt
 
     def parse_stmt(self, ctxt=None):
-        t  = self.track();
-        s1 = None
+        t     = self.track();
+        stmts = []
 
-        if self.accept(Tag.K_pass) != None:
-            return PassStmt(t.loc)
-        elif self.ahead.isa(Tag.M_id):
-            s1 = self.parse_assign_stmt()
-        elif self.ahead.isa(Tag.K_while):
-            s1 = self.parse_while_stmt()
-        else:
-            assert ctxt != None
-            self.xerr("statement", ctxt)
+        while True:
+            while self.accept(Tag.T_semicolon): pass
 
-        if self.accept(Tag.T_semicolon) != None:
-            s2 = self.parse_stmt()
-            return SeqStmt(t.loc(), s1, s2)
-        else:
-            return s1
+            if self.ahead.isa(Tag.M_id):
+                stmts.append(self.parse_assign_stmt())
+            elif self.ahead.isa(Tag.K_while):
+                stmts.append(self.parse_while_stmt())
+            else:
+                break
+
+        return StmtList(t.loc(), stmts)
 
     def parse_assign_stmt(self):
         t    = self.track()
