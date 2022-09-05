@@ -6,10 +6,10 @@ from loc import *
 from tok import *
 
 class Lexer:
-    def __init__(self, filename):
-        self.loc = Loc(filename, Pos(1, 1), Pos(1, 1))
+    def __init__(self, file):
+        self.file = file
+        self.loc  = Loc(file.name, Pos(1, 1), Pos(1, 1))
         self.peek = Pos(1, 1)
-        self.file = open(filename, "r")
         self.keywords = {
             "and":    Tag.K_and,
             "or":     Tag.K_or,

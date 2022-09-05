@@ -1,3 +1,4 @@
+from enum import Enum, auto
 from tok import *
 from err import *
 
@@ -13,8 +14,6 @@ class Tab:
         for i in range(self.ind):
             res += self.tab
         return res
-
-tab = Tab()
 
 class Sema:
     def __init__(self):
@@ -33,6 +32,16 @@ class Sema:
         self.scope[tok.id] = decl
         return True
 
+class Emit(Enum):
+    While = auto()
+    C     = auto()
+    Py    = auto()
+
+tab  = Tab()
+emit = Emit.While
+
+def prefix(): return "" if emit is Emit.While else "_"
+
 # AST
 
 class AST:
@@ -46,9 +55,27 @@ class Prog(AST):
         self.ret  = ret
 
     def __str__(self):
-        head = f"{self.stmt}"
-        tail = f"return {self.ret};"
-        return head + tail
+        res = ""
+
+        if emit is Emit.C:
+            res += f"#include <stdio.h>\n"
+            res += f"\n"
+            res += f"int main() {{\n"
+            tab.indent()
+
+        res += f"{self.stmt}"
+
+        if emit is Emit.While:
+            res += f"{tab}return {self.ret};"
+        elif emit is Emit.C:
+            res += f'{tab}printf("%i\\n",{self.ret});'
+        elif emit is Emit.Py:
+            res += f'{tab}print({self.ret})\n'
+
+        if emit is Emit.C:
+            tab.dedent()
+            res += f"\n}}\n"
+        return res
 
     def check(self):
         sema = Sema()
@@ -59,6 +86,7 @@ class Prog(AST):
         env = {}
         self.stmt.eval(env)
         print(self.ret.eval(env))
+
 # Stmt
 
 class Stmt(AST):
@@ -72,7 +100,10 @@ class DeclStmt(Stmt):
         self.expr = expr
 
     def __str__(self):
-        return f"{self.type} {self.id} = {self.expr}"
+        if emit is Emit.C:
+            return f"{self.type} _{self.id} = {self.expr}"
+        else:
+            return f"{prefix()}{self.id} = {self.expr}"
 
     def check(self, sema):
         self.expr.check(sema)
@@ -89,7 +120,7 @@ class AssignStmt(Stmt):
         self.expr = expr
 
     def __str__(self):
-        return f"{self.id} = {self.expr}"
+        return f"{prefix()}{self.id} = {self.expr}"
 
     def check(self, sema):
         self.expr.check(sema)
@@ -105,9 +136,10 @@ class StmtList(Stmt):
         self.stmts = stmts
 
     def __str__(self):
+        term = "\n" if emit.Py else ";\n"
         res = ""
         for stmt in self.stmts:
-            res += f"{tab}{stmt};\n"
+            res += f"{tab}{stmt}{term}"
         return res
 
     def check(self, sema):
@@ -123,11 +155,17 @@ class WhileStmt(Stmt):
         self.body = body
 
     def __str__(self):
-        head = f"while {self.cond} {{\n"
+        if emit is Emit.While:
+            head = f"while {self.cond} {{\n"
+        elif emit is Emit.C:
+            head = f"while ({self.cond}) {{\n"
+        else:
+            head = f"while {self.cond}:\n"
+
         tab.indent()
         body = f"{self.body}"
         tab.dedent()
-        tail = f"{tab}}}"
+        tail = "" if emit is Emit.Py else f"{tab}}}"
         return head + body + tail
 
     def check(self, sema):
@@ -181,19 +219,17 @@ class BinExpr(Expr):
     def eval(self, env):
         l = self.lhs.eval(env)
         r = self.rhs.eval(env)
-
         if self.op is Tag.T_add: return l +  r
         if self.op is Tag.T_sub: return l -  r
         if self.op is Tag.T_mul: return l *  r
         if self.op is Tag.K_and: return l &  r
         if self.op is Tag.K_or : return l |  r
-        if self.op is Tag.T_eq:  return l == r
-        if self.op is Tag.T_ne:  return l != r
-        if self.op is Tag.T_lt:  return l <  r
-        if self.op is Tag.T_le:  return l <= r
-        if self.op is Tag.T_gt:  return l > r
-        if self.op is Tag.T_ge:  return l >  r
-
+        if self.op is Tag.T_eq : return l == r
+        if self.op is Tag.T_ne : return l != r
+        if self.op is Tag.T_lt : return l <  r
+        if self.op is Tag.T_le : return l <= r
+        if self.op is Tag.T_gt : return l > r
+        if self.op is Tag.T_ge : return l >  r
         assert False
 
 class BoolExpr(Expr):
@@ -201,7 +237,11 @@ class BoolExpr(Expr):
         super(BoolExpr, self).__init__(loc)
         self.val = val
 
-    def __str__(self): return "true" if self.val == True else "false"
+    def __str__(self):
+        if emit is Emit.Py:
+            return "True" if self.val else "False"
+        else:
+            return "true" if self.val else "false"
 
     def check(self, sema):
         self.type = Tag.K_bool
@@ -214,11 +254,12 @@ class IdExpr(Expr):
         super(IdExpr, self).__init__(loc)
         self.id = id
 
-    def __str__(self): return f"{self.id}"
+    def __str__(self): return f"{prefix()}{self.id}"
 
     def check(self, sema):
-        if (assign_stmt := sema.find(self.id)) != None:
-            self.type = assign_stmt.type
+        if (decl := sema.find(self.id)) != None:
+            self.type = decl.type
+            self.decl = decl
             return self.type
         return None
 

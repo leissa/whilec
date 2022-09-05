@@ -5,8 +5,8 @@ from lexer import *
 from err import *
 
 class Parser:
-    def __init__(self, filename):
-        self.lexer = Lexer(filename)
+    def __init__(self, file):
+        self.lexer = Lexer(file)
         self.ahead = self.lexer.lex()
         self.prev  = None
 
