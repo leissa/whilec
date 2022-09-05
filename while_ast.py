@@ -1,5 +1,20 @@
 from tok import *
 
+class Tab:
+    def __init__(self, ind=0, tab = "\t"):
+        self.ind = ind
+        self.tab = tab
+
+    def indent(self): self.ind += 1
+    def dedent(self): self.ind -= 1
+    def __str__(self):
+        res = ""
+        for i in range(0, self.ind):
+            res += self.tab
+        return res
+
+tab = Tab()
+
 class AST:
     def __init__(self, loc): self.loc = loc
 
@@ -9,7 +24,10 @@ class Prog(AST):
         self.stmt = stmt
         self.ret  = ret
 
-    def __str__(self): return f"{self.stmt}; return {self.ret}"
+    def __str__(self):
+        head = f"{self.stmt}"
+        tail = f"return {self.ret}"
+        return head + tail
 
 class Type(AST):
     def __init__(self, loc, tag):
@@ -30,13 +48,14 @@ class AssignStmt(Stmt):
         self.type = type
         self.expr = expr
 
-    def __str__(self): return f"{self.id}: {self.type} = {self.expr}"
+    def __str__(self):
+        return f"{tab}{self.id}: {self.type} = {self.expr}"
 
 class PassStmt(Stmt):
     def __init__(self, loc):
         super(PassStmt, self).__init__(loc)
 
-    def __str__(self): return "pass"
+    def __str__(self): return f"pass"
 
 class SeqStmt(Stmt):
     def __init__(self, loc, s1, s2):
@@ -44,7 +63,7 @@ class SeqStmt(Stmt):
         self.s1 = s1
         self.s2 = s2
 
-    def __str__(self): return f"{self.s1}; {self.s2}"
+    def __str__(self): return f"{tab}{self.s1};\n{self.s2}"
 
 class WhileStmt(Stmt):
     def __init__(self, loc, cond, body):
@@ -52,7 +71,13 @@ class WhileStmt(Stmt):
         self.cond = cond
         self.body = body
 
-    def __str__(self): return f"while {self.cond} {{\n{self.body}}}"
+    def __str__(self):
+        head = f"while {self.cond} {{\n"
+        tab.indent()
+        body = f"{self.body}\n"
+        tab.dedent()
+        tail = f"}}\n"
+        return head + body + tail
 
 # Expr
 
