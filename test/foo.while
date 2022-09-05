@@ -1,5 +1,5 @@
 while x == 0 {
-    x = x + 1;
-    y = x < 17
+    x: int = x + 1;
+    y: bool = x < 17
 }
 return x

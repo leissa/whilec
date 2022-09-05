@@ -32,6 +32,7 @@ class Tag(Enum):
     T_gt        = auto()
     T_ge        = auto()
     T_assign    = auto()
+    T_colon     = auto()
     T_semicolon = auto()
 
     def __str__(self):
@@ -61,8 +62,11 @@ class Tag(Enum):
         if self is self.T_gt:        return ">"
         if self is self.T_ge:        return ">="
         if self is self.T_assign:    return "="
+        if self is self.T_colon:     return ":"
         if self is self.T_semicolon: return ";"
         assert False
+
+    def is_type(self): return self is Tag.K_bool or self is Tag.K_int
 
     def is_bin_op(self):
         return self is self.T_add \
@@ -96,4 +100,5 @@ class Tok:
         return self.tag.__str__()
 
     def isa(self, tag): return self.tag is tag
+    def is_type(self): return self.tag.is_type()
     def is_bin_op(self): return self.tag.is_bin_op()

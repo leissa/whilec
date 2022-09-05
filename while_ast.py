@@ -11,18 +11,26 @@ class Prog(AST):
 
     def __str__(self): return f"{self.stmt}; return {self.ret}"
 
+class Type(AST):
+    def __init__(self, loc, tag):
+        super(Type, self).__init__(loc)
+        self.tag = tag
+
+    def __str__(self): return "bool" if self.tag is Tag.K_bool else "int"
+
 # Stmt
 
 class Stmt(AST):
     def __init__(self, loc): super(Stmt, self).__init__(loc)
 
 class AssignStmt(Stmt):
-    def __init__(self, loc, id, expr):
+    def __init__(self, loc, id, type, expr):
         super(AssignStmt, self).__init__(loc)
         self.id   = id
+        self.type = type
         self.expr = expr
 
-    def __str__(self): return f"{self.id} = {self.expr}"
+    def __str__(self): return f"{self.id}: {self.type} = {self.expr}"
 
 class PassStmt(Stmt):
     def __init__(self, loc):

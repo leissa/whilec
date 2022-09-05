@@ -36,6 +36,7 @@ class Parser:
         if c == None:
             self.xerr(a, self.ahead, b)
         else:
+            got = str(b) if isinstance(b, Tag) else b
             err(b.loc, f"expected {a}, got '{b}' while parsing {c}")
 
     def expect(self, tag, ctxt):
@@ -50,6 +51,12 @@ class Parser:
         ret  = self.parse_expr()
         self.expect(Tag.M_eof, "program")
         return Prog(t.loc(), stmt, ret)
+
+    def parse_type(self, ctxt):
+        if self.ahead.is_type():
+            tok = self.lex()
+            return Type(tok.loc, tok.tag)
+        self.expect("type", "type")
 
     def parse_id(self, ctxt=None):
         if (tok := self.accept(Tag.M_id)) != None: return tok
@@ -80,9 +87,11 @@ class Parser:
     def parse_assign_stmt(self):
         t    = self.track()
         id   = self.eat(Tag.M_id).id
+        self.expect(Tag.T_colon, "type ascription within an assignment statement")
+        type = self.parse_type("type ascription within an assignment statement")
         self.expect(Tag.T_assign, "assignment statement")
         expr = self.parse_expr()
-        return AssignStmt(t.loc(), id, expr)
+        return AssignStmt(t.loc(), id, type, expr)
 
     def parse_while_stmt(self):
         t    = self.track()
@@ -108,6 +117,8 @@ class Parser:
 
     def parse_primary_expr(self, ctxt):
         t = self.track()
+        if self.ahead.isa(Tag.M_id ):  return IdExpr (t.loc(), self.lex().id )
+        if self.ahead.isa(Tag.M_lit):  return LitExpr(t.loc(), self.lex().lit)
         if self.accept(Tag.K_false):
             lit_expr = LitExpr(t.loc(), 0)
             lit_expr.type = Tag.T_bool
@@ -116,8 +127,6 @@ class Parser:
             lit_expr = LitExpr(t.loc(), 1)
             lit_expr.type = Tag.T_bool
             return lit_expr
-        if self.ahead.isa(Tag.M_id ):  return IdExpr (t.loc(), self.lex().id )
-        if self.ahead.isa(Tag.M_lit):  return LitExpr(t.loc(), self.lex().lit)
         if self.ahead.isa(Tag.D_paren_l):
             self.eat(Tag.D_paren_l)
             expr = self.parse_expr()
