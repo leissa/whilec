@@ -89,7 +89,7 @@ class AssignStmt(Stmt):
         self.expr = expr
 
     def __str__(self):
-        return f"{self.id}: {self.type} = {self.expr}"
+        return f"{self.id} = {self.expr}"
 
     def check(self, sema):
         self.expr.check(sema)
