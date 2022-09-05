@@ -128,9 +128,8 @@ class Parser:
         if (tok := self.accept(Tag.K_true )) != None: return BoolExpr(tok.loc, True )
         if (tok := self.accept(Tag.M_id   )) != None: return IdExpr (tok.loc, tok   )
         if (tok := self.accept(Tag.M_lit  )) != None: return LitExpr(tok.loc, tok.val)
-        if self.ahead.isa(Tag.D_paren_l):
-            self.eat(Tag.D_paren_l)
+        if self.accept(Tag.D_paren_l):
             expr = self.parse_expr()
-            self.expect(Tag.D_paren_r)
+            self.expect(Tag.D_paren_r, "parenthesized expression")
             return expr
         self.err("primary expression", ctxt)

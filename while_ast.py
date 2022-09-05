@@ -40,8 +40,6 @@ class Emit(Enum):
 tab  = Tab()
 emit = Emit.While
 
-def prefix(): return "" if emit is Emit.While else "_"
-
 # AST
 
 class AST:
@@ -66,7 +64,7 @@ class Prog(AST):
         res += f"{self.stmt}"
 
         if emit is Emit.While:
-            res += f"{tab}return {self.ret};"
+            res += f"{tab}return {self.ret};\n"
         elif emit is Emit.C:
             res += f'{tab}printf("%i\\n",{self.ret});'
         elif emit is Emit.Py:
@@ -100,10 +98,9 @@ class DeclStmt(Stmt):
         self.expr = expr
 
     def __str__(self):
-        if emit is Emit.C:
-            return f"{self.type} _{self.id} = {self.expr}"
-        else:
-            return f"{prefix()}{self.id} = {self.expr}"
+        if emit is Emit.While: return f"{self.type} {self.id} = {self.expr};"
+        if emit is Emit.C:     return f"{self.type} _{self.id} = {self.expr};"
+        if emit is Emit.Py:    return f"_{self.id} = {self.expr}"
 
     def check(self, sema):
         self.expr.check(sema)
@@ -120,7 +117,9 @@ class AssignStmt(Stmt):
         self.expr = expr
 
     def __str__(self):
-        return f"{prefix()}{self.id} = {self.expr}"
+        if emit is Emit.While: return f"{self.id} = {self.expr};"
+        if emit is Emit.C:     return f"_{self.id} = {self.expr};"
+        if emit is Emit.Py:    return f"_{self.id} = {self.expr}"
 
     def check(self, sema):
         self.expr.check(sema)
@@ -136,10 +135,9 @@ class StmtList(Stmt):
         self.stmts = stmts
 
     def __str__(self):
-        term = "\n" if emit.Py else ";\n"
         res = ""
         for stmt in self.stmts:
-            res += f"{tab}{stmt}{term}"
+            res += f"{tab}{stmt}\n"
         return res
 
     def check(self, sema):
@@ -211,6 +209,13 @@ class BinExpr(Expr):
         else:
             assert False
 
+        op = str(self.op)
+        if emit is Emit.C:
+            if self.op is Tag.K_and:
+                op = "&"
+            elif self.op is Tag.K_and:
+                op = "|"
+
         if t != None and t is not x: err(self.lhs.loc,  f"left-hand side of operator '{self.op}' must be of type '{x}' but is of type '{t}'")
         if u != None and u is not x: err(self.rhs.loc, f"right-hand side of operator '{self.op}' must be of type '{x}' but is of type '{u}'")
 
@@ -254,7 +259,9 @@ class IdExpr(Expr):
         super(IdExpr, self).__init__(loc)
         self.id = id
 
-    def __str__(self): return f"{prefix()}{self.id}"
+    def __str__(self):
+        prefix = "" if emit is Emit.While else "_"
+        return f"{prefix}{self.id}"
 
     def check(self, sema):
         if (decl := sema.find(self.id)) != None:
