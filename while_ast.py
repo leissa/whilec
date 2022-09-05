@@ -55,6 +55,10 @@ class Prog(AST):
         self.stmt.check(sema)
         self.ret.check(sema)
 
+    def eval(self):
+        env = {}
+        self.stmt.eval(env)
+        print(self.ret.eval(env))
 # Stmt
 
 class Stmt(AST):
@@ -74,6 +78,10 @@ class DeclStmt(Stmt):
         self.expr.check(sema)
         sema.bind(self.id, self)
 
+    def eval(self, env):
+        val = self.expr.eval(env)
+        env[self.id.id] = val
+
 class AssignStmt(Stmt):
     def __init__(self, loc, id, expr):
         super(AssignStmt, self).__init__(loc)
@@ -86,6 +94,10 @@ class AssignStmt(Stmt):
     def check(self, sema):
         self.expr.check(sema)
         sema.find(self.id)
+
+    def eval(self, env):
+        val = self.expr.eval(env)
+        env[self.id.id] = val
 
 class StmtList(Stmt):
     def __init__(self, loc, stmts):
@@ -100,6 +112,9 @@ class StmtList(Stmt):
 
     def check(self, sema):
         for stmt in self.stmts: stmt.check(sema)
+
+    def eval(self, env):
+        for stmt in self.stmts: stmt.eval(env)
 
 class WhileStmt(Stmt):
     def __init__(self, loc, cond, body):
@@ -118,6 +133,13 @@ class WhileStmt(Stmt):
     def check(self, sema):
         self.cond.check(sema)
         self.body.check(sema)
+
+    def eval(self, env):
+        while True:
+            val = self.cond.eval(env)
+            if val == False:
+                break
+            self.body.eval(env)
 
 # Expr
 
@@ -156,6 +178,24 @@ class BinExpr(Expr):
 
         return r
 
+    def eval(self, env):
+        l = self.lhs.eval(env)
+        r = self.rhs.eval(env)
+
+        if self.op is Tag.T_add: return l +  r
+        if self.op is Tag.T_sub: return l -  r
+        if self.op is Tag.T_mul: return l *  r
+        if self.op is Tag.K_and: return l &  r
+        if self.op is Tag.K_or : return l |  r
+        if self.op is Tag.T_eq:  return l == r
+        if self.op is Tag.T_ne:  return l != r
+        if self.op is Tag.T_lt:  return l <  r
+        if self.op is Tag.T_le:  return l <= r
+        if self.op is Tag.T_gt:  return l > r
+        if self.op is Tag.T_ge:  return l >  r
+
+        assert False
+
 class BoolExpr(Expr):
     def __init__(self, loc, val):
         super(BoolExpr, self).__init__(loc)
@@ -166,6 +206,8 @@ class BoolExpr(Expr):
     def check(self, sema):
         self.type = Tag.K_bool
         return self.type
+
+    def eval(self, env): return self.val
 
 class IdExpr(Expr):
     def __init__(self, loc, id):
@@ -180,13 +222,17 @@ class IdExpr(Expr):
             return self.type
         return None
 
-class LitExpr(Expr):
-    def __init__(self, loc, lit):
-        super(LitExpr, self).__init__(loc)
-        self.lit = lit
+    def eval(self, env): return env[self.id.id]
 
-    def __str__(self): return f"{self.lit}"
+class LitExpr(Expr):
+    def __init__(self, loc, val):
+        super(LitExpr, self).__init__(loc)
+        self.val = val
+
+    def __str__(self): return f"{self.val}"
 
     def check(self, sema):
         self.type = Tag.K_int
         return self.type
+
+    def eval(self, env): return self.val
