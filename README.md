@@ -59,19 +59,24 @@ Output the source program again:
 
 ## Grammar
 
-```enbf
-p -> s 'return' e ';'
-s -> ';'
-   | t ID '=' e;
-   |   ID '=' e;
-   | 'while' e '{' s '}'
-   | s ... s
-e -> LIT
-   | 'true'
-   | 'false'
-   | ID
-   | '(' e ')'
-   | e OP e
+```ebnf
+p = s 'return' e ';'    (* program *)
+  ;
+
+s = ';'                 (* empty statement *)
+  | t ID '=' e ';'      (* decl statement *)
+  |   ID '=' e ';'      (* assignment statement *)
+  | 'while' e '{' s '}' (* while statement *)
+  | s ... s             (* statement list *)
+  ;
+
+e = LIT                 (* expression *)
+  | 'true'
+  | 'false'
+  | ID
+  | '(' e ')'
+  | e OP e
+  ;
 ```
 where
 * `LIT` = [`0`-`9`]+
