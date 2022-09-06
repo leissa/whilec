@@ -7,7 +7,7 @@ class Pos:
 
     def __str__(self): return f"{self.row}:{self.col}"
     def __eq__(self, other): return self.row == other.row and self.col == other.col
-    def __ne__(self, other): return self.row != other.row and self.col != other.col
+    def __ne__(self, other): return !(self == other)
 
 class Loc:
     def __init__(self, file, begin, finis):

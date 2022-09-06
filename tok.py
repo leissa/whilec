@@ -92,7 +92,7 @@ class Tag(Enum):
             or self is self.T_gt \
             or self is self.T_ge
 
-    def is_logic(self): # binary only - T_not is its own thing
+    def is_logic(self): # binary only - K_not is its own thing
         return self is self.K_and \
             or self is self.K_or
 
