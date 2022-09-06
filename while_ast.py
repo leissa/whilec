@@ -235,8 +235,8 @@ class BinExpr(Expr):
         if self.op is Tag.T_ne : return l != r
         if self.op is Tag.T_lt : return l <  r
         if self.op is Tag.T_le : return l <= r
-        if self.op is Tag.T_gt : return l > r
-        if self.op is Tag.T_ge : return l >  r
+        if self.op is Tag.T_gt : return l >  r
+        if self.op is Tag.T_ge : return l >= r
         assert False
 
 class BoolExpr(Expr):
