@@ -39,7 +39,6 @@ class Parser:
         if c == None:
             self.err(a, self.ahead, b)
         else:
-            got = str(b) if isinstance(b, Tag) else b
             err(b.loc, f"expected {a}, got '{b}' while parsing {c}")
 
     def expect(self, tag, ctxt):
