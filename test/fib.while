@@ -1,7 +1,8 @@
+int n = 5;
+
 int a = 0;
 int b = 1;
 int i = 0;
-int n = 5;
 while i < n {
     int tmp = b;
     b = a + b;
