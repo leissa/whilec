@@ -284,3 +284,8 @@ class LitExpr(Expr):
         return self.type
 
     def eval(self, env): return self.val
+
+class ErrExpr(Expr):
+    def __init__(self, loc): super(ErrExpr, self).__init__(loc)
+    def __str__(self): return f"<error>"
+    def check(self, sema): return None

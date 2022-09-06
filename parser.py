@@ -56,12 +56,11 @@ class Parser:
         self.expect(Tag.M_eof, "at the end of the program")
         return Prog(t.loc(), stmt, ret)
 
-    def parse_type(self, ctxt):
-        if self.ahead.is_type(): return self.lex()
-        self.expect("type", "type")
-
     def parse_id(self, ctxt=None):
         if (tok := self.accept(Tag.M_id)) != None: return tok
+        if ctxt != None:
+            self.err("identifier", ctxt)
+            return Tok(self.ahead.loc, "<error>")
         return None
 
     # Stmt
@@ -82,22 +81,25 @@ class Parser:
             else:
                 break
 
+        if not stmts and ctxt != None:
+            self.err("statement", ctxt)
+
         return StmtList(t.loc(), stmts)
 
     def parse_assign_stmt(self):
         t    = self.track()
         id   = self.eat(Tag.M_id)
         self.expect(Tag.T_assign, "assignment statement")
-        expr = self.parse_expr()
+        expr = self.parse_expr("right-hand side of an assignment statement")
         self.expect(Tag.T_semicolon, "end of an assignment statement")
         return AssignStmt(t.loc(), id, expr)
 
     def parse_decl_stmt(self):
         t    = self.track()
         type = self.lex().tag
-        id   = self.eat(Tag.M_id)
+        id   = self.parse_id("identifier of a declaration statement")
         self.expect(Tag.T_assign, "declaration statement")
-        expr = self.parse_expr()
+        expr = self.parse_expr("right-hand side of a declaration statement")
         self.expect(Tag.T_semicolon, "end of a declaration statement")
         return DeclStmt(t.loc(), type, id, expr)
 
@@ -112,14 +114,14 @@ class Parser:
 
     # Expr
 
-    def parse_expr(self, ctxt = None):
+    def parse_expr(self, ctxt=None):
         t   = self.track()
         lhs = self.parse_primary_expr(ctxt)
 
-        if self.ahead.is_bin_op():
+        while self.ahead.is_bin_op():
             op  = self.lex().tag
             rhs = self.parse_expr()
-            return BinExpr(t.loc(), lhs, op, rhs)
+            lhs = BinExpr(t.loc(), lhs, op, rhs)
 
         return lhs
 
@@ -132,4 +134,9 @@ class Parser:
             expr = self.parse_expr()
             self.expect(Tag.D_paren_r, "parenthesized expression")
             return expr
-        self.err("primary expression", ctxt)
+
+        if ctxt != None:
+            self.err("primary expression", ctxt)
+            return ErrExpr(self.ahead.loc)
+        else:
+            assert False
