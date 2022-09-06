@@ -8,9 +8,7 @@ import while_ast
 from parser import Parser
 
 def write(filename):
-    if filename == "-":
-        return sys.stdout
-    return open(filename, "w")
+    return sys.stdout if filename == "-" else open(filename, "w")
 
 cli = argparse.ArgumentParser(
     description="Compiler and interpreter for the while languge.",
