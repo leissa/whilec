@@ -20,11 +20,13 @@ class Sema:
         self.scope = {}
 
     def find(self, tok):
+        if tok.is_error(): return None
         if tok.id in self.scope: return self.scope[tok.id]
         err(tok.loc, f"identifier '{tok}' not found")
         return None
 
     def bind(self, tok, decl):
+        if tok.is_error(): return True
         if tok.id in self.scope:
             err(tok.loc, f"identifier '{tok}' already declared here: {self.scope[tok.id].loc}")
             return False

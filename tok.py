@@ -118,3 +118,4 @@ class Tok:
     def isa(self, tag): return self.tag is tag
     def is_type(self): return self.tag.is_type()
     def is_bin_op(self): return self.tag.is_bin_op()
+    def is_error(self): return self.id == "<error>"
