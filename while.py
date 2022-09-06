@@ -44,6 +44,6 @@ if args.output_c != None:
         file.write(str(prog))
 
 if args.output_py != None:
-    with open(args.output_py, "w") as file:
+    with write(args.output_py) as file:
         while_ast.emit = while_ast.Emit.Py
         file.write(str(prog))
