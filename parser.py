@@ -125,10 +125,10 @@ class Parser:
         return lhs
 
     def parse_primary_expr(self, ctxt):
-        if (tok := self.accept(Tag.K_false)) != None: return BoolExpr(tok.loc, False)
-        if (tok := self.accept(Tag.K_true )) != None: return BoolExpr(tok.loc, True )
-        if (tok := self.accept(Tag.M_id   )) != None: return IdExpr (tok.loc, tok   )
-        if (tok := self.accept(Tag.M_lit  )) != None: return LitExpr(tok.loc, tok.val)
+        if (tok := self.accept(Tag.K_false)) != None: return BoolExpr(tok.loc, False  )
+        if (tok := self.accept(Tag.K_true )) != None: return BoolExpr(tok.loc, True   )
+        if (tok := self.accept(Tag.M_id   )) != None: return IdExpr  (tok.loc, tok    )
+        if (tok := self.accept(Tag.M_lit  )) != None: return LitExpr (tok.loc, tok.val)
         if self.accept(Tag.D_paren_l):
             expr = self.parse_expr()
             self.expect(Tag.D_paren_r, "parenthesized expression")
@@ -137,5 +137,4 @@ class Parser:
         if ctxt != None:
             self.err("primary expression", ctxt)
             return ErrExpr(self.ahead.loc)
-        else:
-            assert False
+        assert False
