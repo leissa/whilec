@@ -70,11 +70,11 @@ class Prog(AST):
             res += f"{tab}return {self.ret};\n"
         elif emit is Emit.C:
             if self.ret.type == Tag.K_bool:
-                res += f'{tab}printf({self.ret} ? "True\\n" : "False\\n");'
+                res += f'{tab}printf({self.ret} ? "true\\n" : "false\\n");'
             else:
                 res += f'{tab}printf("%i\\n", {self.ret});'
         elif emit is Emit.Py:
-            res += f'{tab}print({self.ret})\n'
+            res += f'{tab}print("true" if {self.ret} else "false")\n'
 
         if emit is Emit.C:
             tab.dedent()
