@@ -175,9 +175,7 @@ class WhileStmt(Stmt):
 
     def eval(self, env):
         while True:
-            val = self.cond.eval(env)
-            if val == False:
-                break
+            if (val := self.cond.eval(env)) == False: break
             self.body.eval(env)
 
 # Expr
