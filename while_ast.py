@@ -58,6 +58,7 @@ class Prog(AST):
         res = ""
 
         if emit is Emit.C:
+            res += f"#include <stdbool.h>\n"
             res += f"#include <stdio.h>\n"
             res += f"\n"
             res += f"int main() {{\n"
