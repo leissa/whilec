@@ -1,14 +1,14 @@
 # While
 
 An interpreter/compiler for a toy language called *While*.
-The implementation is in Python
+The implementation is in Python.
 
 ## Usage
 
 ```
 usage: while.py [-h] [--eval] [-o output] [--output-c output] [--output-py output] file
 
-Compiler and interpreter for the while languge.
+Compiler and interpreter for the While languge.
 
 positional arguments:
   file                  input file

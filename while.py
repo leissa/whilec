@@ -11,7 +11,7 @@ def write(filename):
     return sys.stdout if filename == "-" else open(filename, "w")
 
 cli = argparse.ArgumentParser(
-    description="Compiler and interpreter for the while languge.",
+    description="Compiler and interpreter for the While languge.",
     epilog="Use '-' to output to stdout.")
 
 cli.add_argument(      "--eval",      action="store_true",              dest="eval",      help="interpret input program")
