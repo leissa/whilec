@@ -50,7 +50,7 @@ class Parser:
         t    = self.track()
         stmt = self.parse_stmt()
         self.expect(Tag.K_return, "program")
-        ret  = self.parse_expr()
+        ret  = self.parse_expr("return expression")
         self.expect(Tag.T_semicolon, "at the end of the final return of the program")
         self.expect(Tag.M_eof, "at the end of the program")
         return Prog(t.loc(), stmt, ret)
