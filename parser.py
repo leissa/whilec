@@ -119,7 +119,7 @@ class Parser:
 
         while self.ahead.is_bin_op():
             op  = self.lex().tag
-            rhs = self.parse_expr()
+            rhs = self.parse_expr("right-hand side of operator '{op}'")
             lhs = BinExpr(t.loc(), lhs, op, rhs)
 
         return lhs
