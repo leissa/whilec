@@ -60,17 +60,17 @@ Output the source program again:
 ## Grammar
 
 ```ebnf
-p = s 'return' e ';'    (* program *)
+p = s 'return' e ';' EOF    (* program *)
   ;
 
-s = ';'                 (* empty statement *)
-  | t ID '=' e ';'      (* decl statement *)
-  |   ID '=' e ';'      (* assignment statement *)
-  | 'while' e '{' s '}' (* while statement *)
-  | s ... s             (* statement list *)
+s = ';'                     (* empty statement *)
+  | t ID '=' e ';'          (* decl statement *)
+  |   ID '=' e ';'          (* assignment statement *)
+  | 'while' e '{' s '}'     (* while statement *)
+  | s ... s                 (* statement list *)
   ;
 
-e = LIT                 (* expression *)
+e = LIT                     (* expression *)
   | 'true'
   | 'false'
   | ID

@@ -96,6 +96,11 @@ class Tag(Enum):
         return self is self.K_and \
             or self is self.K_or
 
+    def is_unary(self):
+        return self is self.T_add \
+            or self is self.T_sub \
+            or self is self.K_not
+
 class Tok:
     def __init__(self, loc, arg):
         self.loc = loc.copy()

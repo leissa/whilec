@@ -11,15 +11,15 @@ class Lexer:
         self.loc  = Loc(file.name, Pos(1, 1), Pos(1, 1))
         self.peek = Pos(1, 1)
         self.keywords = {
-            "and":    Tag.K_and,
-            "or":     Tag.K_or,
-            "not":    Tag.K_not,
-            "bool":   Tag.K_bool,
-            "int":    Tag.K_int,
-            "true":   Tag.K_true,
-            "false":  Tag.K_false,
+            "and"   : Tag.K_and,
+            "or"    : Tag.K_or,
+            "not"   : Tag.K_not,
+            "bool"  : Tag.K_bool,
+            "int"   : Tag.K_int,
+            "true"  : Tag.K_true,
+            "false" : Tag.K_false,
             "return": Tag.K_return,
-            "while":  Tag.K_while,
+            "while" : Tag.K_while,
         }
 
     def accept_if(self, pred):

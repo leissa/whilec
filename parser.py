@@ -1,14 +1,38 @@
-from copy import deepcopy
+from enum import IntEnum
 
 from while_ast import *
 from lexer import *
 from err import *
+
+class Prec(IntEnum):
+    Bot   = auto()
+    Or    = auto()
+    And   = auto()
+    Not   = auto()
+    Rel   = auto()
+    Mul   = auto()
+    Add   = auto()
+    Unary = auto()
 
 class Parser:
     def __init__(self, file):
         self.lexer = Lexer(file)
         self.ahead = self.lexer.lex()
         self.prev  = None
+
+        self.prec = {
+            Tag.K_or : [Prec.Or , Prec.And],
+            Tag.K_and: [Prec.And, Prec.Not],
+            Tag.T_eq : [Prec.Rel, Prec.Mul],
+            Tag.T_ne : [Prec.Rel, Prec.Mul],
+            Tag.T_lt : [Prec.Rel, Prec.Mul],
+            Tag.T_le : [Prec.Rel, Prec.Mul],
+            Tag.T_gt : [Prec.Rel, Prec.Mul],
+            Tag.T_ge : [Prec.Rel, Prec.Mul],
+            Tag.T_add: [Prec.Add, Prec.Mul],
+            Tag.T_sub: [Prec.Add, Prec.Mul],
+            Tag.T_mul: [Prec.Mul, Prec.Unary],
+        }
 
     # helpers to track loc
 
@@ -113,22 +137,34 @@ class Parser:
 
     # Expr
 
-    def parse_expr(self, ctxt=None):
+    def parse_expr(self, ctxt = None, p = Prec.Bot):
         t   = self.track()
         lhs = self.parse_primary_expr(ctxt)
 
         while self.ahead.is_bin_op():
-            op  = self.lex().tag
-            rhs = self.parse_expr("right-hand side of operator '{op}'")
-            lhs = BinExpr(t.loc(), lhs, op, rhs)
+            (l, r) = self.prec[self.ahead.tag]
+            if l < p:
+                break
+            else:
+                op  = self.lex().tag
+                rhs = self.parse_expr("right-hand side of operator '{op}'", r)
+                lhs = BinExpr(t.loc(), lhs, op, rhs)
 
         return lhs
 
     def parse_primary_expr(self, ctxt):
+        t = self.track()
+
         if (tok := self.accept(Tag.K_false)) != None: return BoolExpr(tok.loc, False  )
         if (tok := self.accept(Tag.K_true )) != None: return BoolExpr(tok.loc, True   )
         if (tok := self.accept(Tag.M_id   )) != None: return IdExpr  (tok.loc, tok    )
         if (tok := self.accept(Tag.M_lit  )) != None: return LitExpr (tok.loc, tok.val)
+
+        if self.ahead.tag.is_unary():
+            op  = self.lex().tag
+            rhs = self.parse_expr("unary expression", Prec.Not if Tag.K_not else Prec.Unary)
+            return UnaryExpr(t.loc(), op, rhs)
+
         if self.accept(Tag.D_paren_l):
             expr = self.parse_expr()
             self.expect(Tag.D_paren_r, "parenthesized expression")
