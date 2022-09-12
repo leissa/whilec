@@ -7,9 +7,6 @@ import err
 import while_ast
 from parser import Parser
 
-def write(filename):
-    return sys.stdout if filename == "-" else open(filename, "w")
-
 cli = argparse.ArgumentParser(
     description="Compiler and interpreter for the While languge.",
     epilog="Use '-' to output to stdout.")
@@ -26,10 +23,15 @@ with open(args.file, "r") as file:
     parser = Parser(file)
     prog   = parser.parse_prog()
 
-if args.output != None:
-    with write(args.output) as file:
-        while_ast.emit = while_ast.Emit.While
+def output(filename, emit):
+    if filename != None:
+        file = sys.stdout if filename == "-" else open(filename, "w")
+        while_ast.emit = emit
         file.write(str(prog))
+        if filename != "-":
+            file.close()
+
+output(args.output, while_ast.Emit.While)
 
 prog.check()
 if err.num_errors != 0:
@@ -38,12 +40,5 @@ if err.num_errors != 0:
 if args.eval:
     prog.eval()
 
-if args.output_c != None:
-    with write(args.output_c) as file:
-        while_ast.emit = while_ast.Emit.C
-        file.write(str(prog))
-
-if args.output_py != None:
-    with write(args.output_py) as file:
-        while_ast.emit = while_ast.Emit.Py
-        file.write(str(prog))
+output(args.output_c,  while_ast.Emit.C)
+output(args.output_py, while_ast.Emit.Py)

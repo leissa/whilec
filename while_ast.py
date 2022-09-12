@@ -198,8 +198,9 @@ class BinExpr(Expr):
     def __str__(self): return f"({self.lhs} {self.op} {self.rhs})"
 
     def check(self, sema):
-        t = self.lhs.check(sema)
-        u = self.rhs.check(sema)
+        t  = self.lhs.check(sema)
+        u  = self.rhs.check(sema)
+        op = str(self.op)
 
         if self.op.is_arith():
             x = Tag.K_int
@@ -213,7 +214,6 @@ class BinExpr(Expr):
         else:
             assert False
 
-        op = str(self.op)
         if emit is Emit.C:
             if self.op is Tag.K_and:
                 op = "&"
@@ -253,7 +253,8 @@ class UnaryExpr(Expr):
         return f"({op} {self.rhs})"
 
     def check(self, sema):
-        u = self.rhs.check(sema)
+        u  = self.rhs.check(sema)
+        op = str(self.op)
 
         if self.op is Tag.K_not:
             x = Tag.K_bool
@@ -262,10 +263,8 @@ class UnaryExpr(Expr):
             x = Tag.K_int
             r = Tag.K_int
 
-        op = str(self.op)
-
         if u != None and u is not x:
-            err(self.rhs.loc, f"right-hand side of operator '{self.op}' must be of type '{x}' but is of type '{u}'")
+            err(self.rhs.loc, f"operand of operator '{self.op}' must be of type '{x}' but is of type '{u}'")
 
         return r
 
