@@ -31,7 +31,7 @@ def output(filename, emit):
         if filename != "-":
             file.close()
 
-output(args.output, while_ast.Emit.While)
+output(args.output, while_ast.Emit.WHILE)
 
 prog.check()
 if err.NUM_ERRORS != 0:
@@ -41,4 +41,4 @@ if args.eval:
     prog.eval()
 
 output(args.output_c,  while_ast.Emit.C)
-output(args.output_py, while_ast.Emit.Py)
+output(args.output_py, while_ast.Emit.PY)

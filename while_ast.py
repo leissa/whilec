@@ -3,19 +3,23 @@ The While AST (Abstract Syntax Tree)
 """
 
 from enum import Enum, auto
-from tok import *
-from err import *
+from tok import Tag
+from err import err
 
 class Tab:
     def __init__(self, tab = "\t"):
         self.ind = 0
         self.tab = tab
 
-    def indent(self): self.ind += 1
-    def dedent(self): self.ind -= 1
+    def indent(self):
+        self.ind += 1
+
+    def dedent(self):
+        self.ind -= 1
+
     def __str__(self):
         res = ""
-        for i in range(self.ind):
+        for _ in range(self.ind):
             res += self.tab
         return res
 
@@ -39,12 +43,12 @@ class Sema:
         return True
 
 class Emit(Enum):
-    While = auto()
+    WHILE = auto()
     C     = auto()
-    Py    = auto()
+    PY    = auto()
 
 tab  = Tab()
-emit = Emit.While
+emit = Emit.WHILE
 
 # AST
 
@@ -54,7 +58,7 @@ class AST:
 
 class Prog(AST):
     def __init__(self, loc, stmt, ret):
-        super(Prog, self).__init__(loc)
+        super().__init__(loc)
         self.stmt = stmt
         self.ret  = ret
 
@@ -62,27 +66,27 @@ class Prog(AST):
         res = ""
 
         if emit is Emit.C:
-            res += f"#include <stdbool.h>\n"
-            res += f"#include <stdio.h>\n"
-            res += f"\n"
-            res += f"int main() {{\n"
+            res += "#include <stdbool.h>\n"
+            res += "#include <stdio.h>\n"
+            res += "\n"
+            res += "int main() {\n"
             tab.indent()
 
         res += f"{self.stmt}"
 
-        if emit is Emit.While:
+        if emit is Emit.WHILE:
             res += f"{tab}return {self.ret};\n"
         elif emit is Emit.C:
-            if self.ret.type == Tag.K_bool:
+            if self.ret.ty == Tag.K_BOOL:
                 res += f'{tab}printf({self.ret} ? "true\\n" : "false\\n");'
             else:
                 res += f'{tab}printf("%i\\n", {self.ret});'
-        elif emit is Emit.Py:
+        elif emit is Emit.PY:
             res += f'{tab}print("true" if {self.ret} else "false")\n'
 
         if emit is Emit.C:
             tab.dedent()
-            res += f"\n}}\n"
+            res += "\n}\n"
         return res
 
     def check(self):
@@ -97,20 +101,20 @@ class Prog(AST):
 
 # Stmt
 
-class Stmt(AST):
-    def __init__(self, loc): super(Stmt, self).__init__(loc)
+class Stmt(AST): pass
 
 class DeclStmt(Stmt):
-    def __init__(self, loc, type, id, init):
-        super(DeclStmt, self).__init__(loc)
-        self.type = type
+    def __init__(self, loc, ty, id, init):
+        super().__init__(loc)
+        self.ty   = ty
         self.id   = id
         self.init = init
 
     def __str__(self):
-        if emit is Emit.While: return f"{self.type} {self.id} = {self.init};"
-        if emit is Emit.C:     return f"{self.type} _{self.id} = {self.init};"
-        if emit is Emit.Py:    return f"_{self.id} = {self.init}"
+        if emit is Emit.WHILE: return f"{self.ty} {self.id} = {self.init};"
+        if emit is Emit.C:     return f"{self.ty} _{self.id} = {self.init};"
+        if emit is Emit.PY:    return f"_{self.id} = {self.init}"
+        assert False
 
     def check(self, sema):
         self.init.check(sema)
@@ -122,14 +126,14 @@ class DeclStmt(Stmt):
 
 class AssignStmt(Stmt):
     def __init__(self, loc, id, init):
-        super(AssignStmt, self).__init__(loc)
+        super().__init__(loc)
         self.id   = id
         self.init = init
 
     def __str__(self):
-        if emit is Emit.While: return f"{self.id} = {self.init};"
+        if emit is Emit.WHILE: return f"{self.id} = {self.init};"
         if emit is Emit.C:     return f"_{self.id} = {self.init};"
-        if emit is Emit.Py:    return f"_{self.id} = {self.init}"
+        if emit is Emit.PY:    return f"_{self.id} = {self.init}"
 
     def check(self, sema):
         self.init.check(sema)
@@ -141,7 +145,7 @@ class AssignStmt(Stmt):
 
 class StmtList(Stmt):
     def __init__(self, loc, stmts):
-        super(StmtList, self).__init__(loc)
+        super().__init__(loc)
         self.stmts = stmts
 
     def __str__(self):
@@ -158,12 +162,12 @@ class StmtList(Stmt):
 
 class WhileStmt(Stmt):
     def __init__(self, loc, cond, body):
-        super(WhileStmt, self).__init__(loc)
+        super().__init__(loc)
         self.cond = cond
         self.body = body
 
     def __str__(self):
-        if emit is Emit.While:
+        if emit is Emit.WHILE:
             head = f"while {self.cond} {{\n"
         elif emit is Emit.C:
             head = f"while ({self.cond}) {{\n"
@@ -173,7 +177,7 @@ class WhileStmt(Stmt):
         tab.indent()
         body = f"{self.body}"
         tab.dedent()
-        tail = "" if emit is Emit.Py else f"{tab}}}"
+        tail = "" if emit is Emit.PY else f"{tab}}}"
         return head + body + tail
 
     def check(self, sema):
@@ -182,19 +186,19 @@ class WhileStmt(Stmt):
 
     def eval(self, env):
         while True:
-            if (val := self.cond.eval(env)) == False: break
+            if not self.cond.eval(env): break
             self.body.eval(env)
 
 # Expr
 
 class Expr(AST):
     def __init__(self, loc):
-        super(Expr, self).__init__(loc)
-        self.type = None
+        super().__init__(loc)
+        self.ty = None
 
 class BinExpr(Expr):
     def __init__(self, loc, lhs, op, rhs):
-        super(BinExpr, self).__init__(loc)
+        super().__init__(loc)
         self.lhs = lhs
         self.op  = op
         self.rhs = rhs
@@ -207,127 +211,129 @@ class BinExpr(Expr):
         op = str(self.op)
 
         if self.op.is_arith():
-            x = Tag.K_int
-            r = Tag.K_int
+            x = Tag.K_INT
+            r = Tag.K_INT
         elif self.op.is_rel():
-            x = Tag.K_int
-            r = Tag.K_bool
+            x = Tag.K_INT
+            r = Tag.K_BOOL
         elif self.op.is_logic():
-            x = Tag.K_bool
-            r = Tag.K_bool
+            x = Tag.K_BOOL
+            r = Tag.K_BOOL
         else:
             assert False
 
         if emit is Emit.C:
-            if self.op is Tag.K_and:
+            if self.op is Tag.K_AND:
                 op = "&"
-            elif self.op is Tag.K_and:
+            elif self.op is Tag.K_AND:
                 op = "|"
 
-        if t != None and t is not x: err(self.lhs.loc,  f"left-hand side of operator '{self.op}' must be of type '{x}' but is of type '{t}'")
-        if u != None and u is not x: err(self.rhs.loc, f"right-hand side of operator '{self.op}' must be of type '{x}' but is of type '{u}'")
+        if t is not None and t is not x:
+            err(self.lhs.loc,  f"left-hand side of operator '{op}' must be of type '{x}' but is of type '{t}'")
+        if u is not None and u is not x:
+            err(self.rhs.loc, f"right-hand side of operator '{op}' must be of type '{x}' but is of type '{u}'")
 
         return r
 
     def eval(self, env):
         l = self.lhs.eval(env)
         r = self.rhs.eval(env)
-        if self.op is Tag.T_add: return l +  r
-        if self.op is Tag.T_sub: return l -  r
-        if self.op is Tag.T_mul: return l *  r
-        if self.op is Tag.K_and: return l &  r
-        if self.op is Tag.K_or : return l |  r
-        if self.op is Tag.T_eq : return l == r
-        if self.op is Tag.T_ne : return l != r
-        if self.op is Tag.T_lt : return l <  r
-        if self.op is Tag.T_le : return l <= r
-        if self.op is Tag.T_gt : return l >  r
-        if self.op is Tag.T_ge : return l >= r
+        if self.op is Tag.T_ADD: return l +  r
+        if self.op is Tag.T_SUB: return l -  r
+        if self.op is Tag.T_MUL: return l *  r
+        if self.op is Tag.K_AND: return l &  r
+        if self.op is Tag.K_OR : return l |  r
+        if self.op is Tag.T_EQ : return l == r
+        if self.op is Tag.T_NE : return l != r
+        if self.op is Tag.T_LT : return l <  r
+        if self.op is Tag.T_LE : return l <= r
+        if self.op is Tag.T_GT : return l >  r
+        if self.op is Tag.T_GE : return l >= r
         assert False
 
 class UnaryExpr(Expr):
     def __init__(self, loc, op, rhs):
-        super(UnaryExpr, self).__init__(loc)
+        super().__init__(loc)
         self.op  = op
         self.rhs = rhs
 
     def __str__(self):
         op = self.op
-        if emit is Emit.C and self.op is Tag.K_not: op = "!"
+        if emit is Emit.C and self.op is Tag.K_NOT: op = "!"
         return f"{op}({self.rhs})"
 
     def check(self, sema):
         u  = self.rhs.check(sema)
         op = str(self.op)
 
-        if self.op is Tag.K_not:
-            x = Tag.K_bool
-            r = Tag.K_bool
+        if self.op is Tag.K_NOT:
+            x = Tag.K_BOOL
+            r = Tag.K_BOOL
         else:
-            x = Tag.K_int
-            r = Tag.K_int
+            x = Tag.K_INT
+            r = Tag.K_INT
 
-        if u != None and u is not x:
+        if u is not None and u is not x:
             err(self.rhs.loc, f"operand of operator '{self.op}' must be of type '{x}' but is of type '{u}'")
 
         return r
 
     def eval(self, env):
         r = self.rhs.eval(env)
-        if self.op is Tag.K_not: return not r
-        if self.op is Tag.T_add: return     r
-        if self.op is Tag.T_sub: return -   r
+        if self.op is Tag.K_NOT: return not r
+        if self.op is Tag.T_ADD: return     r
+        if self.op is Tag.T_SUB: return -   r
         assert False
 
 class BoolExpr(Expr):
     def __init__(self, loc, val):
-        super(BoolExpr, self).__init__(loc)
+        super().__init__(loc)
         self.val = val
 
     def __str__(self):
-        if emit is Emit.Py:
-            return "True" if self.val else "False"
-        else:
-            return "true" if self.val else "false"
+        if emit is Emit.PY: return "True" if self.val else "False"
+        return "true" if self.val else "false"
 
     def check(self, sema):
-        self.type = Tag.K_bool
-        return self.type
+        self.ty = Tag.K_BOOL
+        return self.ty
 
     def eval(self, env): return self.val
 
 class IdExpr(Expr):
     def __init__(self, loc, id):
-        super(IdExpr, self).__init__(loc)
+        super().__init__(loc)
         self.id = id
 
     def __str__(self):
-        prefix = "" if emit is Emit.While else "_"
+        prefix = "" if emit is Emit.WHILE else "_"
         return f"{prefix}{self.id}"
 
     def check(self, sema):
-        if (decl := sema.find(self.id)) != None:
+        if (decl := sema.find(self.id)) is not None:
             self.decl = decl
-            self.type = decl.type
-            return self.type
+            self.ty   = decl.ty
+            return self.ty
         return None
 
     def eval(self, env): return env[self.id.id]
 
 class LitExpr(Expr):
     def __init__(self, loc, val):
-        super(LitExpr, self).__init__(loc)
+        super().__init__(loc)
         self.val = val
 
     def __str__(self): return f"{self.val}"
 
     def check(self, sema):
-        self.type = Tag.K_int
-        return self.type
+        self.ty = Tag.K_INT
+        return self.ty
 
     def eval(self, env): return self.val
 
 class ErrExpr(Expr):
-    def __init__(self, loc): super(ErrExpr, self).__init__(loc)
-    def __str__(self): return f"<error>"
-    def check(self, sema): return None
+    def __str__(self):
+        return "<error>"
+
+    def check(self, _):
+        return None

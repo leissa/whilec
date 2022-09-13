@@ -15,15 +15,15 @@ class Lexer:
         self.loc  = Loc(file.name, Pos(1, 1), Pos(1, 1))
         self.peek = Pos(1, 1)
         self.keywords = {
-            "and"   : Tag.K_and,
-            "or"    : Tag.K_or,
-            "not"   : Tag.K_not,
-            "bool"  : Tag.K_bool,
-            "int"   : Tag.K_int,
-            "true"  : Tag.K_true,
-            "false" : Tag.K_false,
-            "return": Tag.K_return,
-            "while" : Tag.K_while,
+            "and"   : Tag.K_AND,
+            "or"    : Tag.K_OR,
+            "not"   : Tag.K_NOT,
+            "bool"  : Tag.K_BOOL,
+            "int"   : Tag.K_INT,
+            "true"  : Tag.K_TRUE,
+            "false" : Tag.K_FALSE,
+            "return": Tag.K_RETURN,
+            "while" : Tag.K_WHILE,
         }
 
     def accept_if(self, pred):
@@ -41,10 +41,10 @@ class Lexer:
                 self.peek.col = 1
             else:
                 self.peek.col += 1
-            return True;
+            return True
 
         self.file.seek(tell) # undo read
-        return False;
+        return False
 
     def eat(self): self.accept_if(lambda _ : True)
 
@@ -56,31 +56,31 @@ class Lexer:
             self.loc.finis = deepcopy(self.peek)
             self.str = ""
 
-            if self.accept("" ): return Tok(self.loc, Tag.M_eof)
+            if self.accept("" ): return Tok(self.loc, Tag.M_EOF)
             if self.accept_if(lambda char : char in string.whitespace): continue
-            if self.accept("{"): return Tok(self.loc, Tag.D_brace_l)
-            if self.accept("}"): return Tok(self.loc, Tag.D_brace_r)
-            if self.accept("("): return Tok(self.loc, Tag.D_paren_l)
-            if self.accept(")"): return Tok(self.loc, Tag.D_paren_r)
-            if self.accept("+"): return Tok(self.loc, Tag.T_add)
-            if self.accept("-"): return Tok(self.loc, Tag.T_sub)
-            if self.accept("*"): return Tok(self.loc, Tag.T_mul)
-            if self.accept(";"): return Tok(self.loc, Tag.T_semicolon)
+            if self.accept("{"): return Tok(self.loc, Tag.D_BRACE_L)
+            if self.accept("}"): return Tok(self.loc, Tag.D_BRACE_R)
+            if self.accept("("): return Tok(self.loc, Tag.D_PAREN_L)
+            if self.accept(")"): return Tok(self.loc, Tag.D_PAREN_R)
+            if self.accept("+"): return Tok(self.loc, Tag.T_ADD)
+            if self.accept("-"): return Tok(self.loc, Tag.T_SUB)
+            if self.accept("*"): return Tok(self.loc, Tag.T_MUL)
+            if self.accept(";"): return Tok(self.loc, Tag.T_SEMICOLON)
 
             if self.accept("="):
-                if self.accept("="): return Tok(self.loc, Tag.T_eq)
-                return Tok(self.loc, Tag.T_assign)
+                if self.accept("="): return Tok(self.loc, Tag.T_EQ)
+                return Tok(self.loc, Tag.T_ASSIGN)
 
             if self.accept("<"):
-                if self.accept("="): return Tok(self.loc, Tag.T_le)
-                return Tok(self.loc, Tag.T_lt)
+                if self.accept("="): return Tok(self.loc, Tag.T_LE)
+                return Tok(self.loc, Tag.T_LT)
 
             if self.accept(">"):
-                if self.accept("="): return Tok(self.loc, Tag.T_ge)
-                return Tok(self.loc, Tag.T_gt)
+                if self.accept("="): return Tok(self.loc, Tag.T_GE)
+                return Tok(self.loc, Tag.T_GT)
 
             if self.accept("!"):
-                if self.accept("="): return Tok(self.loc, Tag.T_ne)
+                if self.accept("="): return Tok(self.loc, Tag.T_NE)
                 self.eat()
                 err(self.loc.anew_begin(), f"invalid input char '{self.str}'; maybe you wanted to use '!='?")
                 continue
