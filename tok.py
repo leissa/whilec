@@ -3,7 +3,6 @@ These are all tokens While knows.
 """
 
 from enum import Enum, auto
-from loc import *
 
 class Tag(Enum):
     # delimiters
@@ -22,7 +21,7 @@ class Tag(Enum):
     K_RETURN    = auto()
     K_WHILE     = auto()
     # misc
-    M_ID        = auto()
+    M_SYM       = auto()
     M_LIT       = auto()
     M_EOF       = auto()
     # further Tokens
@@ -52,7 +51,7 @@ class Tag(Enum):
         if self is self.K_FALSE:     return "false"
         if self is self.K_RETURN:    return "return"
         if self is self.K_WHILE:     return "while"
-        if self is self.M_ID:        return "<identifier>"
+        if self is self.M_SYM:       return "<identifier>"
         if self is self.M_LIT:       return "<literal>"
         if self is self.M_EOF:       return "<end of file>"
         if self is self.T_ADD:       return "+"
@@ -68,12 +67,13 @@ class Tag(Enum):
         if self is self.T_SEMICOLON: return ";"
         assert False
 
-    def is_type(self): return self is Tag.K_bool or self is Tag.K_int
+    def is_type(self):
+        return self is Tag.K_BOOL or self is Tag.K_INT
 
     def is_bin_op(self):
-        return self is self.T_ADd \
-            or self is self.T_SUb \
-            or self is self.T_MUl \
+        return self is self.T_ADD \
+            or self is self.T_SUB \
+            or self is self.T_MUL \
             or self is self.T_EQ  \
             or self is self.T_NE  \
             or self is self.T_LT  \
@@ -84,9 +84,9 @@ class Tag(Enum):
             or self is self.K_OR
 
     def is_arith(self):
-        return self is self.T_ADd \
-            or self is self.T_SUb \
-            or self is self.T_MUl
+        return self is self.T_ADD \
+            or self is self.T_SUB \
+            or self is self.T_MUL
 
     def is_rel(self):
         return self is self.T_EQ \
@@ -110,8 +110,8 @@ class Tok:
         self.loc = loc.copy()
 
         if isinstance(arg, str):
-            self.tag = Tag.M_ID
-            self.id  = arg
+            self.tag = Tag.M_SYM
+            self.sym = arg
         elif isinstance(arg, int):
             self.tag = Tag.M_LIT
             self.val = arg
@@ -120,11 +120,18 @@ class Tok:
             self.tag = arg
 
     def __str__(self):
-        if self.isa(Tag.M_ID):  return self.id
+        if self.isa(Tag.M_SYM): return self.sym
         if self.isa(Tag.M_LIT): return str(self.val)
         return self.tag.__str__()
 
-    def isa(self, tag): return self.tag is tag
-    def is_type(self): return self.tag.is_type()
-    def is_bin_op(self): return self.tag.is_bin_op()
-    def is_error(self): return self.id == "<error>"
+    def isa(self, tag):
+        return self.tag is tag
+
+    def is_type(self):
+        return self.tag.is_type()
+
+    def is_bin_op(self):
+        return self.tag.is_bin_op()
+
+    def is_error(self):
+        return self.sym == "<error>"

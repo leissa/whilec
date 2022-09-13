@@ -1,6 +1,12 @@
 [MAIN]
 
-disable=missing-function-docstring,missing-class-docstring
+disable=global-statement,
+        missing-function-docstring,
+        line-too-long,
+        missing-class-docstring,
+        too-few-public-methods,
+        too-many-branches,
+        too-many-return-statements,
 
 # Analyse import fallback blocks. This can be used to support both Python 2 and
 # 3 compatible code, which means that the block might have code that exists
@@ -203,7 +209,7 @@ max-module-lines=1000
 
 # Allow the body of a class to be on the same line as the declaration if body
 # contains single statement.
-single-line-class-stmt=no
+single-line-class-stmt=yes
 
 # Allow the body of an if to be on the same line as the test if there is no
 # else.
@@ -531,10 +537,12 @@ good-names=i,
            Run,
            l,
            r,
+           t,
            x,
            op,
            u,
            id,
+           ty,
            _
 
 # Good variable names regexes, separated by a comma. If names match any regex,

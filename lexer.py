@@ -6,14 +6,15 @@ from copy import deepcopy
 import string
 
 from err import err
-from loc import *
-from tok import *
+from loc import Pos, Loc
+from tok import Tag, Tok
 
 class Lexer:
     def __init__(self, file):
         self.file = file
         self.loc  = Loc(file.name, Pos(1, 1), Pos(1, 1))
         self.peek = Pos(1, 1)
+        self.str  = ""
         self.keywords = {
             "and"   : Tag.K_AND,
             "or"    : Tag.K_OR,
@@ -46,9 +47,11 @@ class Lexer:
         self.file.seek(tell) # undo read
         return False
 
-    def eat(self): self.accept_if(lambda _ : True)
+    def eat(self):
+        self.accept_if(lambda _ : True)
 
-    def accept(self, char): return self.accept_if(lambda c : c == char)
+    def accept(self, char):
+        return self.accept_if(lambda c : c == char)
 
     def lex(self):
         while True:
@@ -57,7 +60,8 @@ class Lexer:
             self.str = ""
 
             if self.accept("" ): return Tok(self.loc, Tag.M_EOF)
-            if self.accept_if(lambda char : char in string.whitespace): continue
+            if self.accept_if(lambda char : char in string.whitespace):
+                continue
             if self.accept("{"): return Tok(self.loc, Tag.D_BRACE_L)
             if self.accept("}"): return Tok(self.loc, Tag.D_BRACE_R)
             if self.accept("("): return Tok(self.loc, Tag.D_PAREN_L)
@@ -87,12 +91,14 @@ class Lexer:
 
             # literal
             if self.accept_if(lambda char : char in string.digits):
-                while self.accept_if(lambda char : char in string.digits): pass
+                while self.accept_if(lambda char : char in string.digits):
+                    pass
                 return Tok(self.loc, int(self.str))
 
             # identifier
             if self.accept_if(lambda char : char in string.ascii_letters):
-                while self.accept_if(lambda char : char in string.ascii_letters or char in string.digits): pass
+                while self.accept_if(lambda char : char in string.ascii_letters or char in string.digits):
+                    pass
                 if self.str in self.keywords: return Tok(self.loc, self.keywords[self.str])
                 return Tok(self.loc, self.str)
 

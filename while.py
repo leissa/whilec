@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
+"""
+Main driver for compiler/interpreter.
+"""
 
 import argparse
 import sys
 
 import err
 import while_ast
-from parser import Parser
+from parse import Parser
 
 cli = argparse.ArgumentParser(
     description="Compiler and interpreter for the While languge.",
@@ -19,17 +22,18 @@ cli.add_argument("file",                                                        
 
 args = cli.parse_args()
 
-with open(args.file, "r") as file:
-    parser = Parser(file)
+with open(args.file, "r", encoding='ASCII') as in_file:
+    parser = Parser(in_file)
     prog   = parser.parse_prog()
 
 def output(filename, emit):
-    if filename != None:
-        file = sys.stdout if filename == "-" else open(filename, "w")
-        while_ast.emit = emit
-        file.write(str(prog))
-        if filename != "-":
-            file.close()
+    if filename is not None:
+        while_ast.EMIT = emit
+        if filename == "-":
+            sys.stdout.write(str(prog))
+        else:
+            with open(filename, "w", encoding='ASCII') as out_file:
+                out_file.write(str(prog))
 
 output(args.output, while_ast.Emit.WHILE)
 
