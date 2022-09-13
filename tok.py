@@ -3,128 +3,135 @@ These are all tokens While knows.
 """
 
 from enum import Enum, auto
-from loc import *
 
 class Tag(Enum):
     # delimiters
-    D_brace_l   = auto()
-    D_brace_r   = auto()
-    D_paren_l   = auto()
-    D_paren_r   = auto()
+    D_BRACE_L   = auto()
+    D_BRACE_R   = auto()
+    D_PAREN_L   = auto()
+    D_PAREN_R   = auto()
     # keywords
-    K_bool      = auto()
-    K_int       = auto()
-    K_and       = auto()
-    K_or        = auto()
-    K_not       = auto()
-    K_true      = auto()
-    K_false     = auto()
-    K_return    = auto()
-    K_while     = auto()
+    K_BOOL      = auto()
+    K_INT       = auto()
+    K_AND       = auto()
+    K_OR        = auto()
+    K_NOT       = auto()
+    K_TRUE      = auto()
+    K_FALSE     = auto()
+    K_RETURN    = auto()
+    K_WHILE     = auto()
     # misc
-    M_id        = auto()
-    M_lit       = auto()
-    M_eof       = auto()
-    # further tokens
-    T_add       = auto()
-    T_sub       = auto()
-    T_mul       = auto()
-    T_eq        = auto()
-    T_ne        = auto()
-    T_lt        = auto()
-    T_le        = auto()
-    T_gt        = auto()
-    T_ge        = auto()
-    T_assign    = auto()
-    T_semicolon = auto()
+    M_SYM       = auto()
+    M_LIT       = auto()
+    M_EOF       = auto()
+    # further Tokens
+    T_ADD       = auto()
+    T_SUB       = auto()
+    T_MUL       = auto()
+    T_EQ        = auto()
+    T_NE        = auto()
+    T_LT        = auto()
+    T_LE        = auto()
+    T_GT        = auto()
+    T_GE        = auto()
+    T_ASSIGN    = auto()
+    T_SEMICOLON = auto()
 
     def __str__(self):
-        if self is self.D_brace_l:   return "{"
-        if self is self.D_brace_r:   return "}"
-        if self is self.D_paren_l:   return "("
-        if self is self.D_paren_r:   return ")"
-        if self is self.K_bool:      return "bool"
-        if self is self.K_int:       return "int"
-        if self is self.K_and:       return "and"
-        if self is self.K_or:        return "or"
-        if self is self.K_not:       return "not"
-        if self is self.K_true:      return "true"
-        if self is self.K_false:     return "false"
-        if self is self.K_return:    return "return"
-        if self is self.K_while:     return "while"
-        if self is self.M_id:        return "<identifier>"
-        if self is self.M_lit:       return "<literal>"
-        if self is self.M_eof:       return "<end of file>"
-        if self is self.T_add:       return "+"
-        if self is self.T_sub:       return "-"
-        if self is self.T_mul:       return "*"
-        if self is self.T_eq:        return "=="
-        if self is self.T_ne:        return "!="
-        if self is self.T_lt:        return "<"
-        if self is self.T_le:        return "<="
-        if self is self.T_gt:        return ">"
-        if self is self.T_ge:        return ">="
-        if self is self.T_assign:    return "="
-        if self is self.T_semicolon: return ";"
+        if self is self.D_BRACE_L:   return "{"
+        if self is self.D_BRACE_R:   return "}"
+        if self is self.D_PAREN_L:   return "("
+        if self is self.D_PAREN_R:   return ")"
+        if self is self.K_BOOL:      return "bool"
+        if self is self.K_INT:       return "int"
+        if self is self.K_AND:       return "and"
+        if self is self.K_OR:        return "or"
+        if self is self.K_NOT:       return "not"
+        if self is self.K_TRUE:      return "true"
+        if self is self.K_FALSE:     return "false"
+        if self is self.K_RETURN:    return "return"
+        if self is self.K_WHILE:     return "while"
+        if self is self.M_SYM:       return "<identifier>"
+        if self is self.M_LIT:       return "<literal>"
+        if self is self.M_EOF:       return "<end of file>"
+        if self is self.T_ADD:       return "+"
+        if self is self.T_SUB:       return "-"
+        if self is self.T_MUL:       return "*"
+        if self is self.T_EQ:        return "=="
+        if self is self.T_NE:        return "!="
+        if self is self.T_LT:        return "<"
+        if self is self.T_LE:        return "<="
+        if self is self.T_GT:        return ">"
+        if self is self.T_GE:        return ">="
+        if self is self.T_ASSIGN:    return "="
+        if self is self.T_SEMICOLON: return ";"
         assert False
 
-    def is_type(self): return self is Tag.K_bool or self is Tag.K_int
+    def is_type(self):
+        return self is Tag.K_BOOL or self is Tag.K_INT
 
     def is_bin_op(self):
-        return self is self.T_add \
-            or self is self.T_sub \
-            or self is self.T_mul \
-            or self is self.T_eq  \
-            or self is self.T_ne  \
-            or self is self.T_lt  \
-            or self is self.T_le  \
-            or self is self.T_gt  \
-            or self is self.T_ge  \
-            or self is self.K_and \
-            or self is self.K_or
+        return self is self.T_ADD \
+            or self is self.T_SUB \
+            or self is self.T_MUL \
+            or self is self.T_EQ  \
+            or self is self.T_NE  \
+            or self is self.T_LT  \
+            or self is self.T_LE  \
+            or self is self.T_GT  \
+            or self is self.T_GE  \
+            or self is self.K_AND \
+            or self is self.K_OR
 
     def is_arith(self):
-        return self is self.T_add \
-            or self is self.T_sub \
-            or self is self.T_mul
+        return self is self.T_ADD \
+            or self is self.T_SUB \
+            or self is self.T_MUL
 
     def is_rel(self):
-        return self is self.T_eq \
-            or self is self.T_ne \
-            or self is self.T_lt \
-            or self is self.T_le \
-            or self is self.T_gt \
-            or self is self.T_ge
+        return self is self.T_EQ \
+            or self is self.T_NE \
+            or self is self.T_LT \
+            or self is self.T_LE \
+            or self is self.T_GT \
+            or self is self.T_GE
 
     def is_logic(self): # binary only - K_not is its own thing
-        return self is self.K_and \
-            or self is self.K_or
+        return self is self.K_AND \
+            or self is self.K_OR
 
     def is_unary(self):
-        return self is self.T_add \
-            or self is self.T_sub \
-            or self is self.K_not
+        return self is self.T_ADD \
+            or self is self.T_SUB \
+            or self is self.K_NOT
 
 class Tok:
     def __init__(self, loc, arg):
         self.loc = loc.copy()
 
         if isinstance(arg, str):
-            self.tag = Tag.M_id
-            self.id  = arg
+            self.tag = Tag.M_SYM
+            self.sym = arg
         elif isinstance(arg, int):
-            self.tag = Tag.M_lit
+            self.tag = Tag.M_LIT
             self.val = arg
         else:
             assert isinstance(arg, Tag)
             self.tag = arg
 
     def __str__(self):
-        if self.isa(Tag.M_id):  return self.id
-        if self.isa(Tag.M_lit): return str(self.val)
+        if self.isa(Tag.M_SYM): return self.sym
+        if self.isa(Tag.M_LIT): return str(self.val)
         return self.tag.__str__()
 
-    def isa(self, tag): return self.tag is tag
-    def is_type(self): return self.tag.is_type()
-    def is_bin_op(self): return self.tag.is_bin_op()
-    def is_error(self): return self.id == "<error>"
+    def isa(self, tag):
+        return self.tag is tag
+
+    def is_type(self):
+        return self.tag.is_type()
+
+    def is_bin_op(self):
+        return self.tag.is_bin_op()
+
+    def is_error(self):
+        return self.sym == "<error>"

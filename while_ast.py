@@ -3,19 +3,23 @@ The While AST (Abstract Syntax Tree)
 """
 
 from enum import Enum, auto
-from tok import *
-from err import *
+from tok import Tag
+from err import err
 
 class Tab:
     def __init__(self, tab = "\t"):
         self.ind = 0
         self.tab = tab
 
-    def indent(self): self.ind += 1
-    def dedent(self): self.ind -= 1
+    def indent(self):
+        self.ind += 1
+
+    def dedent(self):
+        self.ind -= 1
+
     def __str__(self):
         res = ""
-        for i in range(self.ind):
+        for _ in range(self.ind):
             res += self.tab
         return res
 
@@ -25,26 +29,26 @@ class Sema:
 
     def find(self, tok):
         if tok.is_error(): return None
-        if tok.id in self.scope: return self.scope[tok.id]
+        if tok.sym in self.scope: return self.scope[tok.sym]
         err(tok.loc, f"identifier '{tok}' not found")
         return None
 
     def bind(self, tok, decl):
         if tok.is_error(): return True
-        if tok.id in self.scope:
-            err(tok.loc, f"identifier '{tok}' already declared here: {self.scope[tok.id].loc}")
+        if tok.sym in self.scope:
+            err(tok.loc, f"identifier '{tok}' already declared here: {self.scope[tok.sym].loc}")
             return False
 
-        self.scope[tok.id] = decl
+        self.scope[tok.sym] = decl
         return True
 
 class Emit(Enum):
-    While = auto()
+    WHILE = auto()
     C     = auto()
-    Py    = auto()
+    PY    = auto()
 
-tab  = Tab()
-emit = Emit.While
+TAB  = Tab()
+EMIT = Emit.WHILE
 
 # AST
 
@@ -54,35 +58,35 @@ class AST:
 
 class Prog(AST):
     def __init__(self, loc, stmt, ret):
-        super(Prog, self).__init__(loc)
+        super().__init__(loc)
         self.stmt = stmt
         self.ret  = ret
 
     def __str__(self):
         res = ""
 
-        if emit is Emit.C:
-            res += f"#include <stdbool.h>\n"
-            res += f"#include <stdio.h>\n"
-            res += f"\n"
-            res += f"int main() {{\n"
-            tab.indent()
+        if EMIT is Emit.C:
+            res += "#include <stdbool.h>\n"
+            res += "#include <stdio.h>\n"
+            res += "\n"
+            res += "int main() {\n"
+            TAB.indent()
 
         res += f"{self.stmt}"
 
-        if emit is Emit.While:
-            res += f"{tab}return {self.ret};\n"
-        elif emit is Emit.C:
-            if self.ret.type == Tag.K_bool:
-                res += f'{tab}printf({self.ret} ? "true\\n" : "false\\n");'
+        if EMIT is Emit.WHILE:
+            res += f"{TAB}return {self.ret};\n"
+        elif EMIT is Emit.C:
+            if self.ret.ty == Tag.K_BOOL:
+                res += f'{TAB}printf({self.ret} ? "true\\n" : "false\\n");'
             else:
-                res += f'{tab}printf("%i\\n", {self.ret});'
-        elif emit is Emit.Py:
-            res += f'{tab}print("true" if {self.ret} else "false")\n'
+                res += f'{TAB}printf("%i\\n", {self.ret});'
+        elif EMIT is Emit.PY:
+            res += f'{TAB}print("true" if {self.ret} else "false")\n'
 
-        if emit is Emit.C:
-            tab.dedent()
-            res += f"\n}}\n"
+        if EMIT is Emit.C:
+            TAB.dedent()
+            res += "\n}\n"
         return res
 
     def check(self):
@@ -97,83 +101,86 @@ class Prog(AST):
 
 # Stmt
 
-class Stmt(AST):
-    def __init__(self, loc): super(Stmt, self).__init__(loc)
+class Stmt(AST): pass
 
 class DeclStmt(Stmt):
-    def __init__(self, loc, type, id, init):
-        super(DeclStmt, self).__init__(loc)
-        self.type = type
-        self.id   = id
+    def __init__(self, loc, ty, sym, init):
+        super().__init__(loc)
+        self.ty   = ty
+        self.sym  = sym
         self.init = init
 
     def __str__(self):
-        if emit is Emit.While: return f"{self.type} {self.id} = {self.init};"
-        if emit is Emit.C:     return f"{self.type} _{self.id} = {self.init};"
-        if emit is Emit.Py:    return f"_{self.id} = {self.init}"
+        if EMIT is Emit.WHILE: return f"{self.ty} {self.sym} = {self.init};"
+        if EMIT is Emit.C:     return f"{self.ty} _{self.sym} = {self.init};"
+        if EMIT is Emit.PY:    return f"_{self.sym} = {self.init}"
+        assert False
 
     def check(self, sema):
         self.init.check(sema)
-        sema.bind(self.id, self)
+        sema.bind(self.sym, self)
 
     def eval(self, env):
         val = self.init.eval(env)
-        env[self.id.id] = val
+        env[self.sym.sym] = val
 
 class AssignStmt(Stmt):
-    def __init__(self, loc, id, init):
-        super(AssignStmt, self).__init__(loc)
-        self.id   = id
+    def __init__(self, loc, sym, init):
+        super().__init__(loc)
+        self.sym  = sym
         self.init = init
 
     def __str__(self):
-        if emit is Emit.While: return f"{self.id} = {self.init};"
-        if emit is Emit.C:     return f"_{self.id} = {self.init};"
-        if emit is Emit.Py:    return f"_{self.id} = {self.init}"
+        if EMIT is Emit.WHILE: return f"{self.sym} = {self.init};"
+        if EMIT is Emit.C:     return f"_{self.sym} = {self.init};"
+        if EMIT is Emit.PY:    return f"_{self.sym} = {self.init}"
+        assert False
 
     def check(self, sema):
         self.init.check(sema)
-        sema.find(self.id)
+        sema.find(self.sym)
 
     def eval(self, env):
         val = self.init.eval(env)
-        env[self.id.id] = val
+        env[self.sym.sym] = val
 
 class StmtList(Stmt):
     def __init__(self, loc, stmts):
-        super(StmtList, self).__init__(loc)
+        super().__init__(loc)
         self.stmts = stmts
 
     def __str__(self):
         res = ""
         for stmt in self.stmts:
-            res += f"{tab}{stmt}\n"
+            res += f"{TAB}{stmt}\n"
         return res
 
     def check(self, sema):
-        for stmt in self.stmts: stmt.check(sema)
+        for stmt in self.stmts:
+            stmt.check(sema)
 
     def eval(self, env):
-        for stmt in self.stmts: stmt.eval(env)
+        for stmt in self.stmts:
+            stmt.eval(env)
 
 class WhileStmt(Stmt):
     def __init__(self, loc, cond, body):
-        super(WhileStmt, self).__init__(loc)
+        super().__init__(loc)
         self.cond = cond
         self.body = body
 
     def __str__(self):
-        if emit is Emit.While:
+        if EMIT is Emit.WHILE:
             head = f"while {self.cond} {{\n"
-        elif emit is Emit.C:
+        elif EMIT is Emit.C:
             head = f"while ({self.cond}) {{\n"
         else:
             head = f"while {self.cond}:\n"
 
-        tab.indent()
+        TAB.indent()
         body = f"{self.body}"
-        tab.dedent()
-        tail = "" if emit is Emit.Py else f"{tab}}}"
+        TAB.dedent()
+        tail = "" if EMIT is Emit.PY else f"{TAB}}}"
         return head + body + tail
 
     def check(self, sema):
@@ -182,152 +189,159 @@ class WhileStmt(Stmt):
 
     def eval(self, env):
         while True:
-            if (val := self.cond.eval(env)) == False: break
+            if not self.cond.eval(env): break
             self.body.eval(env)
 
 # Expr
 
 class Expr(AST):
     def __init__(self, loc):
-        super(Expr, self).__init__(loc)
-        self.type = None
+        super().__init__(loc)
+        self.ty = None
 
 class BinExpr(Expr):
     def __init__(self, loc, lhs, op, rhs):
-        super(BinExpr, self).__init__(loc)
+        super().__init__(loc)
         self.lhs = lhs
         self.op  = op
         self.rhs = rhs
 
-    def __str__(self): return f"({self.lhs} {self.op} {self.rhs})"
-
-    def check(self, sema):
-        t  = self.lhs.check(sema)
-        u  = self.rhs.check(sema)
+    def __str__(self):
         op = str(self.op)
 
+        if EMIT is Emit.C:
+            if self.op is Tag.K_AND:
+                op = "&"
+            elif self.op is Tag.K_AND:
+                op = "|"
+
+        return f"({self.lhs} {op} {self.rhs})"
+
+    def check(self, sema):
+        l_ty  = self.lhs.check(sema)
+        r_ty  = self.rhs.check(sema)
+
         if self.op.is_arith():
-            x = Tag.K_int
-            r = Tag.K_int
+            expected_ty = Tag.K_INT
+            result_ty   = Tag.K_INT
         elif self.op.is_rel():
-            x = Tag.K_int
-            r = Tag.K_bool
+            expected_ty = Tag.K_INT
+            result_ty   = Tag.K_BOOL
         elif self.op.is_logic():
-            x = Tag.K_bool
-            r = Tag.K_bool
+            expected_ty = Tag.K_BOOL
+            result_ty   = Tag.K_BOOL
         else:
             assert False
 
-        if emit is Emit.C:
-            if self.op is Tag.K_and:
-                op = "&"
-            elif self.op is Tag.K_and:
-                op = "|"
+        if l_ty is not None and l_ty is not expected_ty:
+            err(self.lhs.loc, f"left-hand side of operator '{self.op}' must be of type '{expected_ty}' but is of type '{l_ty}'")
+        if r_ty is not None and r_ty is not expected_ty:
+            err(self.rhs.loc, f"right-hand side of operator '{self.op}' must be of type '{expected_ty}' but is of type '{r_ty}'")
 
-        if t != None and t is not x: err(self.lhs.loc,  f"left-hand side of operator '{self.op}' must be of type '{x}' but is of type '{t}'")
-        if u != None and u is not x: err(self.rhs.loc, f"right-hand side of operator '{self.op}' must be of type '{x}' but is of type '{u}'")
-
-        return r
+        return result_ty
 
     def eval(self, env):
         l = self.lhs.eval(env)
         r = self.rhs.eval(env)
-        if self.op is Tag.T_add: return l +  r
-        if self.op is Tag.T_sub: return l -  r
-        if self.op is Tag.T_mul: return l *  r
-        if self.op is Tag.K_and: return l &  r
-        if self.op is Tag.K_or : return l |  r
-        if self.op is Tag.T_eq : return l == r
-        if self.op is Tag.T_ne : return l != r
-        if self.op is Tag.T_lt : return l <  r
-        if self.op is Tag.T_le : return l <= r
-        if self.op is Tag.T_gt : return l >  r
-        if self.op is Tag.T_ge : return l >= r
+        if self.op is Tag.T_ADD: return l +  r
+        if self.op is Tag.T_SUB: return l -  r
+        if self.op is Tag.T_MUL: return l *  r
+        if self.op is Tag.K_AND: return l &  r
+        if self.op is Tag.K_OR : return l |  r
+        if self.op is Tag.T_EQ : return l == r
+        if self.op is Tag.T_NE : return l != r
+        if self.op is Tag.T_LT : return l <  r
+        if self.op is Tag.T_LE : return l <= r
+        if self.op is Tag.T_GT : return l >  r
+        if self.op is Tag.T_GE : return l >= r
         assert False
 
 class UnaryExpr(Expr):
     def __init__(self, loc, op, rhs):
-        super(UnaryExpr, self).__init__(loc)
+        super().__init__(loc)
         self.op  = op
         self.rhs = rhs
 
     def __str__(self):
-        op = self.op
-        if emit is Emit.C and self.op is Tag.K_not: op = "!"
+        op = "!" if EMIT is Emit.C and self.op is Tag.K_NOT else str(self.op)
         return f"{op}({self.rhs})"
 
     def check(self, sema):
-        u  = self.rhs.check(sema)
-        op = str(self.op)
+        r_ty = self.rhs.check(sema)
 
-        if self.op is Tag.K_not:
-            x = Tag.K_bool
-            r = Tag.K_bool
+        if self.op is Tag.K_NOT:
+            expected_ty = Tag.K_BOOL
+            result_ty   = Tag.K_BOOL
         else:
-            x = Tag.K_int
-            r = Tag.K_int
+            expected_ty = Tag.K_INT
+            result_ty   = Tag.K_INT
 
-        if u != None and u is not x:
-            err(self.rhs.loc, f"operand of operator '{self.op}' must be of type '{x}' but is of type '{u}'")
+        if r_ty is not None and r_ty is not expected_ty:
+            err(self.rhs.loc, f"operand of operator '{self.op}' must be of type '{expected_ty}' but is of type '{r_ty}'")
 
-        return r
+        return result_ty
 
     def eval(self, env):
         r = self.rhs.eval(env)
-        if self.op is Tag.K_not: return not r
-        if self.op is Tag.T_add: return     r
-        if self.op is Tag.T_sub: return -   r
+        if self.op is Tag.K_NOT: return not r
+        if self.op is Tag.T_ADD: return     r
+        if self.op is Tag.T_SUB: return -   r
         assert False
 
 class BoolExpr(Expr):
     def __init__(self, loc, val):
-        super(BoolExpr, self).__init__(loc)
+        super().__init__(loc)
         self.val = val
 
     def __str__(self):
-        if emit is Emit.Py:
-            return "True" if self.val else "False"
-        else:
-            return "true" if self.val else "false"
+        if EMIT is Emit.PY: return "True" if self.val else "False"
+        return "true" if self.val else "false"
 
-    def check(self, sema):
-        self.type = Tag.K_bool
-        return self.type
+    def check(self, _):
+        self.ty = Tag.K_BOOL
+        return self.ty
 
-    def eval(self, env): return self.val
+    def eval(self, _):
+        return self.val
 
-class IdExpr(Expr):
-    def __init__(self, loc, id):
-        super(IdExpr, self).__init__(loc)
-        self.id = id
+class SymExpr(Expr):
+    def __init__(self, loc, sym):
+        super().__init__(loc)
+        self.sym  = sym
+        self.decl = None
 
     def __str__(self):
-        prefix = "" if emit is Emit.While else "_"
-        return f"{prefix}{self.id}"
+        prefix = "" if EMIT is Emit.WHILE else "_"
+        return f"{prefix}{self.sym}"
 
     def check(self, sema):
-        if (decl := sema.find(self.id)) != None:
+        if (decl := sema.find(self.sym)) is not None:
             self.decl = decl
-            self.type = decl.type
-            return self.type
+            self.ty   = decl.ty
+            return self.ty
         return None
 
-    def eval(self, env): return env[self.id.id]
+    def eval(self, env):
+        return env[self.sym.sym]
 
 class LitExpr(Expr):
     def __init__(self, loc, val):
-        super(LitExpr, self).__init__(loc)
+        super().__init__(loc)
         self.val = val
 
-    def __str__(self): return f"{self.val}"
+    def __str__(self):
+        return f"{self.val}"
 
-    def check(self, sema):
-        self.type = Tag.K_int
-        return self.type
+    def check(self, _):
+        self.ty = Tag.K_INT
+        return self.ty
 
-    def eval(self, env): return self.val
+    def eval(self, _):
+        return self.val
 
 class ErrExpr(Expr):
-    def __init__(self, loc): super(ErrExpr, self).__init__(loc)
-    def __str__(self): return f"<error>"
-    def check(self, sema): return None
+    def __str__(self):
+        return "<error>"
+
+    def check(self, _):
+        return None
