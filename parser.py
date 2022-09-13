@@ -171,6 +171,6 @@ class Parser:
             return expr
 
         if ctxt != None:
-            self.err("primary expression", ctxt)
+            self.err("primary or unary expression", ctxt)
             return ErrExpr(self.ahead.loc)
         assert False

@@ -250,7 +250,7 @@ class UnaryExpr(Expr):
     def __str__(self):
         op = self.op
         if emit is Emit.C and self.op is Tag.K_not: op = "!"
-        return f"({op} {self.rhs})"
+        return f"{op}({self.rhs})"
 
     def check(self, sema):
         u  = self.rhs.check(sema)
