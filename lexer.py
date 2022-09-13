@@ -1,3 +1,7 @@
+"""
+Lexes an input file and produces Tokens.
+"""
+
 from copy import deepcopy
 import string
 

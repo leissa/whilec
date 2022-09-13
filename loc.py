@@ -1,3 +1,7 @@
+"""
+Helpers to keep track of source code locations.
+"""
+
 from copy import deepcopy
 
 class Pos:

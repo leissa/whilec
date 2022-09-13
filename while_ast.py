@@ -1,3 +1,7 @@
+"""
+The While AST (Abstract Syntax Tree)
+"""
+
 from enum import Enum, auto
 from tok import *
 from err import *

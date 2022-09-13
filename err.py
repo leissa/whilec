@@ -1,6 +1,10 @@
-num_errors = 0
+"""
+Helper to emit and keep track of errors.
+"""
+
+NUM_ERRORS = 0
 
 def err(loc, *args, **kwargs):
-    global num_errors
-    num_errors += 1
+    global NUM_ERRORS
+    NUM_ERRORS += 1
     print(f"{loc}: error: "+" ".join(map(str, args)), **kwargs)

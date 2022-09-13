@@ -1,3 +1,7 @@
+"""
+These are all tokens While knows.
+"""
+
 from enum import Enum, auto
 from loc import *
 
