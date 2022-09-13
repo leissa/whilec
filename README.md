@@ -70,6 +70,10 @@ s = ';'                     (* empty statement *)
   | s ... s                 (* statement list *)
   ;
 
+t = 'int'                   (* type *)
+  | 'bool'
+  ;
+
 e = LIT                     (* expression *)
   | 'true'
   | 'false'
@@ -88,18 +92,15 @@ where
 ### Precedence
 
 Ambiguities in the expression productions are resolved according to the operator precedence that is summarized in the following table (strongest binding first):
+
 | Operator                        | Description             |
 |---------------------------------|-------------------------|
 | `+e`, `-e`                      | unary plus, unary minus |
 | `*`                             | multiplication          |
-| `+`, `-`                        | Addition, Subtraction   |
-| `+`, `-`                        | Addition, Subtraction   |
+| `+`, `-`                        | addition, subtraction   |
 | `==`, `!=`, `<`, `<=`, `>`, `>` | relational operators    |
 | `not e`                         | Boolean NOT             |
 | `and`                           | Boolean AND             |
 | `or`                            | Boolean OR              |
+
 All binary operators are [**left** associative](https://en.wikipedia.org/wiki/Operator_associativity).
-
-
-
-
