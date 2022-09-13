@@ -162,7 +162,7 @@ class Parser:
 
         if self.ahead.tag.is_unary():
             op  = self.lex().tag
-            rhs = self.parse_expr("unary expression", Prec.Not if Tag.K_not else Prec.Unary)
+            rhs = self.parse_expr("unary expression", Prec.Not if op is Tag.K_not else Prec.Unary)
             return UnaryExpr(t.loc(), op, rhs)
 
         if self.accept(Tag.D_paren_l):
