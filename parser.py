@@ -139,7 +139,7 @@ class Parser:
 
     def parse_expr(self, ctxt = None, p = Prec.Bot):
         t   = self.track()
-        lhs = self.parse_primary_expr(ctxt)
+        lhs = self.parse_primary_or_unary_expr(ctxt)
 
         while self.ahead.is_bin_op():
             (l, r) = self.prec[self.ahead.tag]
@@ -152,7 +152,7 @@ class Parser:
 
         return lhs
 
-    def parse_primary_expr(self, ctxt):
+    def parse_primary_or_unary_expr(self, ctxt):
         t = self.track()
 
         if (tok := self.accept(Tag.K_false)) != None: return BoolExpr(tok.loc, False  )
