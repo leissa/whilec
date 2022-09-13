@@ -81,4 +81,25 @@ e = LIT                     (* expression *)
 where
 * `LIT` = [`0`-`9`]+
 * `ID` = [`a`-`zA`-`Z`][`a`-`zA`-`Z0`-`9`]*
-* `OP` is one of: `- * and or == != < <= > >=`
+* `ID` = [`a`-`zA`-`Z`][`a`-`zA`-`Z0`-`9`]*
+* `OP1` is one of: `+`, `-`, `not`
+* `OP2` is one of: `*`, `+`, `-`, `==`, `!=`, `<`, `<=`, `>`, `>=`, `and`, `or`
+
+### Precedence
+
+Ambiguities in the expression productions are resolved according to the operator precedence that is summarized in the following table (strongest binding first):
+| Operator                        | Description             |
+|---------------------------------|-------------------------|
+| `+e`, `-e`                      | unary plus, unary minus |
+| `*`                             | multiplication          |
+| `+`, `-`                        | Addition, Subtraction   |
+| `+`, `-`                        | Addition, Subtraction   |
+| `==`, `!=`, `<`, `<=`, `>`, `>` | relational operators    |
+| `not e`                         | Boolean NOT             |
+| `and`                           | Boolean AND             |
+| `or`                            | Boolean OR              |
+All binary operators are [**left** associative](https://en.wikipedia.org/wiki/Operator_associativity).
+
+
+
+
