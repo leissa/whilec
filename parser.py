@@ -10,8 +10,8 @@ class Prec(IntEnum):
     And   = auto()
     Not   = auto()
     Rel   = auto()
-    Mul   = auto()
     Add   = auto()
+    Mul   = auto()
     Unary = auto()
 
 class Parser:
