@@ -86,7 +86,8 @@ e = LIT                     (* expression *)
   | 'false'
   | ID
   | '(' e ')'
-  | e OP e
+  | OP1 e
+  | e OP2 e
   ;
 ```
 where
