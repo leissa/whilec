@@ -28,22 +28,38 @@ class Tab:
 
 class Sema:
     def __init__(self):
-        self.scope = {}
+        self.scopes = []
+        self.push() # root scope
+
+    def push(self):
+        self.scopes.append({})
+
+    def pop(self):
+        self.scopes.pop()
 
     def find(self, tok):
         if tok.is_error(): return None
-        if tok.sym in self.scope: return self.scope[tok.sym]
+
+        for scope in reversed(self.scopes):
+            if tok.sym in scope:
+                return scope[tok.sym]
+
         err(tok.loc, f"identifier '{tok}' not found")
         return None
 
     def bind(self, tok, decl):
-        if tok.is_error(): return True
-        if tok.sym in self.scope:
-            err(tok.loc, f"redeclaration of '{tok}'")
-            note(self.scope[tok.sym].loc, "previous declaration here")
+        if tok.is_error():
+            return True
+
+        curr_scope = self.scopes[-1]
+
+        if tok.sym in curr_scope:
+            prev = curr_scope[tok.sym]
+            err(decl.loc, f"redeclaration of '{tok}' in the same scope")
+            note(prev.loc, "previous declaration here")
             return False
 
-        self.scope[tok.sym] = decl
+        curr_scope[tok.sym] = decl
         return True
 
 class Emit(Enum):
@@ -196,7 +212,10 @@ class WhileStmt(Stmt):
         cond_ty = self.cond.check(sema)
         if not same(cond_ty, Tag.K_BOOL):
             err(self.cond.loc, f"condition of a while statement must be of type `bool` but is of type '{cond_ty}'")
+
+        sema.push()
         self.body.check(sema)
+        sema.pop()
 
     def eval(self, env):
         while True:
