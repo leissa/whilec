@@ -103,7 +103,10 @@ class Prog(AST):
             else:
                 res += f'{TAB}printf("%i\\n", {self.ret});'
         elif EMIT is Emit.PY:
-            res += f'{TAB}print("true" if {self.ret} else "false")\n'
+            if self.ret.ty is Tag.K_BOOL:
+                res += f'{TAB}print("true" if {self.ret} else "false")\n'
+            else:
+                res += f'{TAB}print({self.ret})'
 
         if EMIT is Emit.C:
             TAB.dedent()
@@ -128,11 +131,10 @@ class Stmt(AST): pass
 DECL_COUNTER = 0
 
 def name(decl, sym = None):
-    if decl is None:       return f"{sym}"
-    if EMIT is Emit.EVAL:  return f"{decl.sym}_{decl.counter}"
-    if EMIT is Emit.WHILE: return f"{decl.sym}"
-    if EMIT is Emit.C:     return f"{decl.ty} _{decl.sym} = {decl.init};"
-    if EMIT is Emit.PY:    return f"{decl.ty} {decl.sym}_{decl.counter} = {decl.init};"
+    if decl is None:                         return f"{sym}"
+    if EMIT is Emit.WHILE:                   return f"{decl.sym}"
+    if EMIT is Emit.C:                       return f"_{decl.sym}"
+    if EMIT is Emit.EVAL or EMIT is Emit.PY: return f"{decl.sym}_{decl.counter}"
     assert False
 
 class DeclStmt(Stmt):
@@ -146,6 +148,10 @@ class DeclStmt(Stmt):
         DECL_COUNTER += 1
 
     def __str__(self):
+        #if EMIT is Emit.WHILE: return f"{self.ty} {self.sym} = {self.init};"
+        #if EMIT is Emit.C:     return f"{self.ty} _{self.sym} = {self.init};"
+        #if EMIT is Emit.PY:    return f"_{self.sym} = {self.init}"
+
         if EMIT is Emit.PY: return f"{name(self)} = {self.init}"
         return f"{self.ty} {name(self)} = {self.init};"
 
