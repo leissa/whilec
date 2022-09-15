@@ -63,6 +63,7 @@ class Sema:
         return True
 
 class Emit(Enum):
+    EVAL  = auto()
     WHILE = auto()
     C     = auto()
     PY    = auto()
@@ -102,7 +103,10 @@ class Prog(AST):
             else:
                 res += f'{TAB}printf("%i\\n", {self.ret});'
         elif EMIT is Emit.PY:
-            res += f'{TAB}print("true" if {self.ret} else "false")\n'
+            if self.ret.ty is Tag.K_BOOL:
+                res += f'{TAB}print("true" if {self.ret} else "false")\n'
+            else:
+                res += f'{TAB}print({self.ret})'
 
         if EMIT is Emit.C:
             TAB.dedent()
@@ -115,6 +119,7 @@ class Prog(AST):
         self.ret.check(sema)
 
     def eval(self):
+        assert EMIT is Emit.EVAL
         env = {}
         self.stmt.eval(env)
         print(self.ret.eval(env))
@@ -123,18 +128,32 @@ class Prog(AST):
 
 class Stmt(AST): pass
 
+DECL_COUNTER = 0
+
+def name(decl, sym = None):
+    if decl is None:                         return f"{sym}"
+    if EMIT is Emit.WHILE:                   return f"{decl.sym}"
+    if EMIT is Emit.C:                       return f"_{decl.sym}"
+    if EMIT is Emit.EVAL or EMIT is Emit.PY: return f"{decl.sym}_{decl.counter}"
+    assert False
+
 class DeclStmt(Stmt):
     def __init__(self, loc, ty, sym, init):
+        global DECL_COUNTER
         super().__init__(loc)
         self.ty   = ty
         self.sym  = sym
         self.init = init
+        self.counter = DECL_COUNTER
+        DECL_COUNTER += 1
 
     def __str__(self):
-        if EMIT is Emit.WHILE: return f"{self.ty} {self.sym} = {self.init};"
-        if EMIT is Emit.C:     return f"{self.ty} _{self.sym} = {self.init};"
-        if EMIT is Emit.PY:    return f"_{self.sym} = {self.init}"
-        assert False
+        #if EMIT is Emit.WHILE: return f"{self.ty} {self.sym} = {self.init};"
+        #if EMIT is Emit.C:     return f"{self.ty} _{self.sym} = {self.init};"
+        #if EMIT is Emit.PY:    return f"_{self.sym} = {self.init}"
+
+        if EMIT is Emit.PY: return f"{name(self)} = {self.init}"
+        return f"{self.ty} {name(self)} = {self.init};"
 
     def check(self, sema):
         init_ty = self.init.check(sema)
@@ -144,30 +163,30 @@ class DeclStmt(Stmt):
 
     def eval(self, env):
         val = self.init.eval(env)
-        env[self.sym.sym] = val
+        env[name(self)] = val
 
 class AssignStmt(Stmt):
     def __init__(self, loc, sym, init):
         super().__init__(loc)
         self.sym  = sym
         self.init = init
+        self.decl = None
 
     def __str__(self):
-        if EMIT is Emit.WHILE: return f"{self.sym} = {self.init};"
-        if EMIT is Emit.C:     return f"_{self.sym} = {self.init};"
-        if EMIT is Emit.PY:    return f"_{self.sym} = {self.init}"
-        assert False
+        if EMIT is Emit.PY:
+            return f"{name(self.decl, self.sym)} = {self.init}"
+        return f"{name(self.decl, self.sym)} = {self.init};"
 
     def check(self, sema):
         init_ty = self.init.check(sema)
-        decl = sema.find(self.sym)
-        if not same(init_ty, decl.ty):
-            err(self.loc, f"right-hand side of asssignment statement is of type '{init_ty}' but '{decl.sym}' is declared of type '{decl.ty}'")
-            note(decl.loc, "previous declaration here")
+        self.decl = sema.find(self.sym)
+        if not same(init_ty, self.decl.ty):
+            err(self.loc, f"right-hand side of asssignment statement is of type '{init_ty}' but '{self.decl.sym}' is declared of type '{self.decl.ty}'")
+            note(self.decl.loc, "previous declaration here")
 
     def eval(self, env):
         val = self.init.eval(env)
-        env[self.sym.sym] = val
+        env[name(self.decl)] = val
 
 class StmtList(Stmt):
     def __init__(self, loc, stmts):
@@ -341,8 +360,7 @@ class SymExpr(Expr):
         self.decl = None
 
     def __str__(self):
-        prefix = "" if EMIT is Emit.WHILE else "_"
-        return f"{prefix}{self.sym}"
+        return f"{name(self.decl, self.sym)}"
 
     def check(self, sema):
         if (decl := sema.find(self.sym)) is not None:
@@ -352,7 +370,7 @@ class SymExpr(Expr):
         return None
 
     def eval(self, env):
-        return env[self.sym.sym]
+        return env[name(self.decl)]
 
 class LitExpr(Expr):
     def __init__(self, loc, val):

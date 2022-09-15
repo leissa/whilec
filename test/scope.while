@@ -1,0 +1,8 @@
+int x = 1;
+
+while x >= 0 {
+    x = x - 1;
+    bool x = false;
+}
+
+return x;

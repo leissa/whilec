@@ -81,6 +81,8 @@ class Parser:
         self.err(f"'{tag}'", ctxt)
         return None
 
+    # entry
+
     def parse_prog(self):
         t    = self.track()
         stmt = self.parse_stmt("program")
