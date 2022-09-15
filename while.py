@@ -39,7 +39,7 @@ output(args.output, while_ast.Emit.WHILE)
 
 prog.check()
 if err.NUM_ERRORS != 0:
-    sys.exit(f"aborting due to {err.NUM_ERRORS} error(s)")
+    sys.exit(f"error: aborting due to {err.NUM_ERRORS} error(s)")
 
 if args.eval:
     prog.eval()

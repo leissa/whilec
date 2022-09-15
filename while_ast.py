@@ -39,7 +39,7 @@ class Sema:
     def bind(self, tok, decl):
         if tok.is_error(): return True
         if tok.sym in self.scope:
-            err(tok.loc, f"identifier '{tok}' already declared")
+            err(tok.loc, f"redeclaration of '{tok}'")
             note(self.scope[tok.sym].loc, "previous declaration here")
             return False
 
