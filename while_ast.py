@@ -4,7 +4,10 @@ The While AST (Abstract Syntax Tree)
 
 from enum import Enum, auto
 from tok import Tag
-from err import err
+from err import err, note
+
+def same(t, u):
+    return t is None or u is None or t == u
 
 class Tab:
     def __init__(self, tab = "\t"):
@@ -36,7 +39,8 @@ class Sema:
     def bind(self, tok, decl):
         if tok.is_error(): return True
         if tok.sym in self.scope:
-            err(tok.loc, f"identifier '{tok}' already declared here: {self.scope[tok.sym].loc}")
+            err(tok.loc, f"identifier '{tok}' already declared")
+            note(self.scope[tok.sym].loc, "previous declaration here")
             return False
 
         self.scope[tok.sym] = decl
@@ -117,7 +121,9 @@ class DeclStmt(Stmt):
         assert False
 
     def check(self, sema):
-        self.init.check(sema)
+        init_ty = self.init.check(sema)
+        if not same(init_ty, self.ty):
+            err(self.loc, f"initialization of declaration statement is of type '{init_ty}' but '{self.sym}' is declared of type '{self.ty}'")
         sema.bind(self.sym, self)
 
     def eval(self, env):
@@ -137,8 +143,11 @@ class AssignStmt(Stmt):
         assert False
 
     def check(self, sema):
-        self.init.check(sema)
-        sema.find(self.sym)
+        init_ty = self.init.check(sema)
+        decl = sema.find(self.sym)
+        if not same(init_ty, decl.ty):
+            err(self.loc, f"right-hand side of asssignment statement is of type '{init_ty}' but '{decl.sym}' is declared of type '{decl.ty}'")
+            note(decl.loc, "previous declaration here")
 
     def eval(self, env):
         val = self.init.eval(env)
@@ -184,7 +193,9 @@ class WhileStmt(Stmt):
         return head + body + tail
 
     def check(self, sema):
-        self.cond.check(sema)
+        cond_ty = self.cond.check(sema)
+        if not same(cond_ty, Tag.K_BOOL):
+            err(self.cond.loc, f"condition of a while statement must be of type `bool` but is of type '{cond_ty}'")
         self.body.check(sema)
 
     def eval(self, env):
@@ -233,9 +244,9 @@ class BinExpr(Expr):
         else:
             assert False
 
-        if l_ty is not None and l_ty is not expected_ty:
+        if not same(l_ty, expected_ty):
             err(self.lhs.loc, f"left-hand side of operator '{self.op}' must be of type '{expected_ty}' but is of type '{l_ty}'")
-        if r_ty is not None and r_ty is not expected_ty:
+        if not same(r_ty, expected_ty):
             err(self.rhs.loc, f"right-hand side of operator '{self.op}' must be of type '{expected_ty}' but is of type '{r_ty}'")
 
         return result_ty
@@ -276,7 +287,7 @@ class UnaryExpr(Expr):
             expected_ty = Tag.K_INT
             result_ty   = Tag.K_INT
 
-        if r_ty is not None and r_ty is not expected_ty:
+        if not same(r_ty, expected_ty):
             err(self.rhs.loc, f"operand of operator '{self.op}' must be of type '{expected_ty}' but is of type '{r_ty}'")
 
         return result_ty
