@@ -148,10 +148,6 @@ class DeclStmt(Stmt):
         DECL_COUNTER += 1
 
     def __str__(self):
-        #if EMIT is Emit.WHILE: return f"{self.ty} {self.sym} = {self.init};"
-        #if EMIT is Emit.C:     return f"{self.ty} _{self.sym} = {self.init};"
-        #if EMIT is Emit.PY:    return f"_{self.sym} = {self.init}"
-
         if EMIT is Emit.PY: return f"{name(self)} = {self.init}"
         return f"{self.ty} {name(self)} = {self.init};"
 
