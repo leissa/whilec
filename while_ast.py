@@ -257,7 +257,7 @@ class BinExpr(Expr):
         if EMIT is Emit.C:
             if self.op is Tag.K_AND:
                 op = "&"
-            elif self.op is Tag.K_AND:
+            elif self.op is Tag.K_OR:
                 op = "|"
 
         return f"({self.lhs} {op} {self.rhs})"
