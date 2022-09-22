@@ -106,7 +106,7 @@ class Prog(AST):
             if self.ret.ty is Tag.K_BOOL:
                 res += f'{TAB}print("true" if {self.ret} else "false")\n'
             else:
-                res += f'{TAB}print({self.ret})'
+                res += f'{TAB}print({self.ret})\n'
 
         if EMIT is Emit.C:
             TAB.dedent()
