@@ -85,7 +85,7 @@ class Parser:
 
     def parse_prog(self):
         t    = self.track()
-        stmt = self.parse_stmt("program")
+        stmt = self.parse_stmt()
         self.expect(Tag.K_RETURN, "program")
         ret  = self.parse_expr("return expression")
         self.expect(Tag.T_SEMICOLON, "at the end of the final return of the program")
@@ -101,7 +101,7 @@ class Parser:
 
     # Stmt
 
-    def parse_stmt(self, ctxt=None):
+    def parse_stmt(self):
         t     = self.track()
         stmts = []
 
@@ -117,9 +117,6 @@ class Parser:
                 stmts.append(self.parse_while_stmt())
             else:
                 break
-
-        if not stmts and ctxt is not None:
-            self.err("statement", ctxt)
 
         return StmtList(t.loc(), stmts)
 
@@ -145,7 +142,7 @@ class Parser:
         self.eat(Tag.K_WHILE)
         cond = self.parse_expr("condition of a while statement")
         self.expect(Tag.D_BRACE_L, "while statement")
-        body = self.parse_stmt("body of a while statement")
+        body = self.parse_stmt()
         self.expect(Tag.D_BRACE_R, "while statement")
         return WhileStmt(t.loc(), cond, body)
 
