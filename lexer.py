@@ -24,6 +24,8 @@ class Lexer:
             "true"  : Tag.K_TRUE,
             "false" : Tag.K_FALSE,
             "return": Tag.K_RETURN,
+            "if"    : Tag.K_IF,
+            "else"  : Tag.K_ELSE,
             "while" : Tag.K_WHILE,
         }
 

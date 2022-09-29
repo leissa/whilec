@@ -126,7 +126,9 @@ class Prog(AST):
 
 # Stmt
 
-class Stmt(AST): pass
+class Stmt(AST):
+    def is_empty(self):
+        return isinstance(self, StmtList) and not self.stmts
 
 DECL_COUNTER = 0
 
@@ -202,6 +204,67 @@ class StmtList(Stmt):
     def eval(self, env):
         for stmt in self.stmts:
             stmt.eval(env)
+
+class IfStmt(Stmt):
+    def __init__(self, loc, cond, cons, alt):
+        super().__init__(loc)
+        self.cond = cond
+        self.cons = cons
+        self.alt  = alt
+
+    def __str__(self):
+        if EMIT is Emit.WHILE:
+            head = f"if {self.cond} {{\n"
+        elif EMIT is Emit.C:
+            head = f"if ({self.cond}) {{\n"
+        else:
+            head = f"if {self.cond}:\n"
+
+        TAB.indent()
+        if EMIT is Emit.PY and self.cons.is_empty():
+            cons = f"{TAB}pass\n"
+        else:
+            cons = f"{self.cons}"
+
+        TAB.dedent()
+        tail_cons = "" if EMIT is Emit.PY else f"{TAB}}}"
+
+        if EMIT is Emit.WHILE:
+            else_ = f"else {{\n"
+        elif EMIT is Emit.C:
+            else_ = f" else {{\n"
+        else:
+            else_ = f"else:\n"
+        TAB.indent()
+
+        if EMIT is Emit.PY and self.alt.is_empty():
+            alt = f"{TAB}pass\n"
+        else:
+            alt = f"{self.alt}"
+        TAB.dedent()
+
+        tail_alt = "" if EMIT is Emit.PY else f"{TAB}}}"
+        return head + cons + tail_cons + else_ + alt + tail_alt
+
+    def check(self, sema):
+        cond_ty = self.cond.check(sema)
+        if not same(cond_ty, Tag.K_BOOL):
+            err(self.cond.loc, f"condition of an if statement must be of type `bool` but is of type '{cond_ty}'")
+
+        sema.push()
+        self.cons.check(sema)
+        sema.pop()
+
+        sema.push()
+        self.alt.check(sema)
+        sema.pop()
+
+    def eval(self, env):
+        cond = self.cond.eval(env)
+        if cond:
+            self.cons.eval(env)
+        else:
+            self.alt.eval(env)
 
 class WhileStmt(Stmt):
     def __init__(self, loc, cond, body):

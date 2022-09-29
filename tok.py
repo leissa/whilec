@@ -19,6 +19,8 @@ class Tag(Enum):
     K_TRUE      = auto()
     K_FALSE     = auto()
     K_RETURN    = auto()
+    K_IF        = auto()
+    K_ELSE      = auto()
     K_WHILE     = auto()
     # misc
     M_SYM       = auto()
