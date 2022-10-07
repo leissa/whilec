@@ -127,8 +127,7 @@ class Prog(AST):
 # Stmt
 
 class Stmt(AST):
-    def is_empty(self):
-        return isinstance(self, StmtList) and not self.stmts
+    pass
 
 DECL_COUNTER = 0
 
@@ -192,6 +191,8 @@ class StmtList(Stmt):
         self.stmts = stmts
 
     def __str__(self):
+        if EMIT is Emit.PY and not self.stmts:
+            return f"{TAB}pass\n"
         res = ""
         for stmt in self.stmts:
             res += f"{TAB}{stmt}\n"
@@ -221,26 +222,20 @@ class IfStmt(Stmt):
             head = f"if {self.cond}:\n"
 
         TAB.indent()
-        if EMIT is Emit.PY and self.cons.is_empty():
-            cons = f"{TAB}pass\n"
-        else:
-            cons = f"{self.cons}"
-
+        cons = f"{self.cons}"
         TAB.dedent()
+
         tail_cons = "" if EMIT is Emit.PY else f"{TAB}}}"
 
         if EMIT is Emit.WHILE:
-            else_ = f"else {{\n"
+            else_ = "else {{\n"
         elif EMIT is Emit.C:
-            else_ = f" else {{\n"
+            else_ = " else {{\n"
         else:
-            else_ = f"else:\n"
-        TAB.indent()
+            else_ = "else:\n"
 
-        if EMIT is Emit.PY and self.alt.is_empty():
-            alt = f"{TAB}pass\n"
-        else:
-            alt = f"{self.alt}"
+        TAB.indent()
+        alt = f"{self.alt}"
         TAB.dedent()
 
         tail_alt = "" if EMIT is Emit.PY else f"{TAB}}}"
