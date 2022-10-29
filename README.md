@@ -67,21 +67,23 @@ Output the source program again:
 ## Grammar
 
 ```ebnf
-p = s 'return' e ';' EOF    (* program *)
+P = s 'return' e ';' EOF                (* program *)
   ;
 
-s = ';'                     (* empty statement *)
-  | t ID '=' e ';'          (* decl statement *)
-  |   ID '=' e ';'          (* assignment statement *)
-  | 'while' e '{' s '}'     (* while statement *)
-  | s ... s                 (* statement list *)
+s = ';'                                 (* empty statement *)
+  | t ID '=' e ';'                      (* decl statement *)
+  |   ID '=' e ';'                      (* assignment statement *)
+  | 'if' e '{' s '}'                    (* if statement *)
+  | 'if' e '{' s '}' 'else' '{' s '}'   (* if-else statement *)
+  | 'while' e '{' s '}'                 (* while statement *)
+  | s ... s                             (* statement list *)
   ;
 
-t = 'int'                   (* type *)
+t = 'int'                               (* type *)
   | 'bool'
   ;
 
-e = LIT                     (* expression *)
+e = LIT                                 (* expression *)
   | 'true'
   | 'false'
   | ID
