@@ -4,7 +4,7 @@
 [![Python 3.9](https://img.shields.io/badge/Python-3.9-blue?&logo=Python&logoColor=white)](https://www.python.org/)
 [![Python 3.10](https://img.shields.io/badge/Python-3.10-blue?&logo=Python&logoColor=white)](https://www.python.org/)
 
-[![Pylint](https://img.shields.io/github/workflow/status/leissa/whilec/Pylint?logo=Python&label=Pylint&logoColor=white)](https://github.com/leissa/whilec/actions/workflows/pylint.yml)
+[![Pylint](https://img.shields.io/github/actions/workflow/status/leissa/whilec/pylint.yml?logo=Python&label=Pylint&logoColor=white&branch=main)](https://github.com/leissa/whilec/actions/workflows/pylint.yml)
 
 
 An interpreter/compiler for a toy language called *While*.
